@@ -35,9 +35,9 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return CalendarScreen();
       case 2:
-        return ProfileScreen();
-      case 3:
         return QnaScreen();
+      case 3:
+        return ProfileScreen();
       default:
         return Center(child: Text('메인화면'));
     }

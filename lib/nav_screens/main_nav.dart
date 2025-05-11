@@ -1,38 +1,57 @@
 import 'package:flutter/material.dart';
 
+/// 하단 네비게이션 바 위젯
 class BottomNavBar extends StatelessWidget {
   final int selectedIndex;
-  final Function(int) onItemTapped;
+  final ValueChanged<int> onItemTapped;
 
-  BottomNavBar({required this.selectedIndex, required this.onItemTapped});
+  const BottomNavBar({
+    required this.selectedIndex,
+    required this.onItemTapped,
+    super.key,
+  });
+
+  static const Color _backgroundColor = Color(0xFFFDEAE8); // 전체 배경
+  static const Color _indicatorColor = Color(0xFFFCDADA); // 선택 배경
+  static const Color _iconColor = Colors.black; // 공통 아이콘 색
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed, // 하단에 4개이상 넣으려면 들어가야됨
-      currentIndex: selectedIndex,
-      onTap: onItemTapped,
+    return Container(
+      color: _backgroundColor,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: NavigationBar(
+        height: 64,
+        elevation: 0,
+        selectedIndex: selectedIndex,
+        onDestinationSelected: onItemTapped,
+        backgroundColor: _backgroundColor,
+        indicatorColor: _indicatorColor,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
 
-      // ---아이콘 원하는걸로 바꾸셔도 돼요---//
-
-      items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: '홈',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
-          label: '캘린더',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.question_answer_sharp),
-          label: 'QnA',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.supervised_user_circle_sharp),
-          label: '프로필',
-        ),
-      ],
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined, color: _iconColor),
+            selectedIcon: Icon(Icons.home_outlined, color: _iconColor),
+            label: '메인',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined, color: _iconColor),
+            selectedIcon: Icon(Icons.calendar_month_outlined, color: _iconColor),
+            label: '캘린더',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline, color: _iconColor),
+            selectedIcon: Icon(Icons.chat_bubble_outline, color: _iconColor),
+            label: 'QnA',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline, color: _iconColor),
+            selectedIcon: Icon(Icons.person_outline, color: _iconColor),
+            label: '프로필',
+          ),
+        ],
+      ),
     );
   }
 }

@@ -3,6 +3,10 @@ import 'package:capstone/nav_screens/main_nav.dart';
 import 'package:capstone/nav_screens/calendar_screen.dart';
 import 'package:capstone/nav_screens/profile_screen.dart';
 import 'package:capstone/nav_screens/qna_screen.dart';
+import 'package:capstone/detail_screens/benefit_screen.dart';
+import 'package:capstone/detail_screens/checklist_screen.dart';
+import 'package:capstone/detail_screens/info_screen.dart';
+import 'package:capstone/detail_screens/nearby_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -63,26 +67,30 @@ class _MainScreenState extends State<MainScreen> {
 class MainGridMenu extends StatelessWidget {
   const MainGridMenu({Key? key}) : super(key: key);
 
-  static const List<MenuItem> items = [
+  static List<MenuItem> items = [
     MenuItem(
       title: '혜택 안내',
       icon: Icons.card_giftcard,
       gradient: [Color(0xFFFF8C8C), Color(0xFFFFB6B6)],
+      screen: BenefitScreen(), // BenefitScreen으로 이동
     ),
     MenuItem(
       title: '주변 시설',
       icon: Icons.place,
       gradient: [Color(0xFFFFD57E), Color(0xFFFFE1A8)],
+      screen: NearbyScreen(),
     ),
     MenuItem(
       title: '체크리스트',
       icon: Icons.check_circle_outline,
       gradient: [Color(0xFF88D8E8), Color(0xFFA8D5FF)],
+      screen: ChecklistScreen(),
     ),
     MenuItem(
       title: '맞춤 정보',
       icon: Icons.info_outline,
       gradient: [Color(0xFFA3EFA9), Color(0xFFC1E1C1)],
+      screen: InfoScreen(),
     ),
   ];
 
@@ -95,19 +103,23 @@ class MainGridMenu extends StatelessWidget {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         childAspectRatio: 1,
-        children: items.map((item) => _buildGridItem(item)).toList(),
+        children: items.map((item) => _buildGridItem(item, context)).toList(),
       ),
     );
   }
 
-  Widget _buildGridItem(MenuItem item) {
+  Widget _buildGridItem(MenuItem item, BuildContext context) {
     return Material(
       elevation: 4,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          // TODO: 해당 메뉴 기능 연결 예정
+          // 해당 화면으로 이동
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => item.screen),
+          );
         },
         splashColor: Colors.white24,
         child: Container(
@@ -142,15 +154,18 @@ class MainGridMenu extends StatelessWidget {
   }
 }
 
+
 /// 메뉴 아이템 모델
 class MenuItem {
   final String title;
   final IconData icon;
   final List<Color> gradient;
+  final Widget screen;
 
   const MenuItem({
     required this.title,
     required this.icon,
     required this.gradient,
+    required this.screen, //스크린 이동 파라미터
   });
 }

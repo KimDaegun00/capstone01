@@ -43,12 +43,14 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('메인화면'),
-      //   backgroundColor: Colors.white,
-      //   elevation: 0,
-      //   foregroundColor: Colors.black,
-      // ),
+      appBar: _selectedIndex == 0
+          ? AppBar(
+        title: const Text('메인화면'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      )
+          : null, // 👉 다른 화면일 땐 AppBar 없앰
       backgroundColor: const Color(0xFFF7F5F4),
       body: _getBody(),
       bottomNavigationBar: BottomNavBar(
@@ -58,6 +60,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
 
 /// 메인 화면 2x2 그리드 메뉴
 class MainGridMenu extends StatelessWidget {

@@ -36,16 +36,6 @@ class BottomNavBar extends StatelessWidget {
             label: '메인',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined, color: _iconColor),
-            selectedIcon: Icon(Icons.calendar_month_outlined, color: _iconColor),
-            label: '캘린더',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline, color: _iconColor),
-            selectedIcon: Icon(Icons.chat_bubble_outline, color: _iconColor),
-            label: 'QnA',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.person_outline, color: _iconColor),
             selectedIcon: Icon(Icons.person_outline, color: _iconColor),
             label: '프로필',

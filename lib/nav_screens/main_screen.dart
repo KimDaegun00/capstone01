@@ -34,10 +34,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget _getBody() {
     switch (_selectedIndex) {
       case 1:
-        return CalendarScreen();
-      case 2:
-        return QnaScreen();
-      case 3:
         return ProfileScreen();
       default:
         return const MainGridMenu();

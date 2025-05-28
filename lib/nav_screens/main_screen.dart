@@ -7,6 +7,8 @@ import 'package:capstone/detail_screens/benefit_screen.dart';
 import 'package:capstone/detail_screens/checklist_screen.dart';
 import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
+import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -99,15 +101,40 @@ class MainGridMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1,
-        children: items.map((item) => _buildGridItem(item, context)).toList(),
+      child: Column(
+        children: [
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1,
+              children: items.map((item) => _buildGridItem(item, context)).toList(),
+            ),
+          ),
+          SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,  // 가로 꽉 채우기
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () {
+                // 버튼 눌렀을 때 동작
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
+                );
+              },
+              child: Text(
+                '정보 입력하기',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
 
   Widget _buildGridItem(MenuItem item, BuildContext context) {
     return Material(

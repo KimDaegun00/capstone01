@@ -9,6 +9,7 @@ import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
 import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
 
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -51,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
       )
-          : null,
+          : null, // 👉 다른 화면일 땐 AppBar 없앰
       backgroundColor: const Color(0xFFF7F5F4),
       body: _getBody(),
       bottomNavigationBar: BottomNavBar(
@@ -62,16 +63,19 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+
 /// 메인 화면 2x2 그리드 메뉴
 class MainGridMenu extends StatelessWidget {
   const MainGridMenu({Key? key}) : super(key: key);
+
+
 
   static List<MenuItem> items = [
     MenuItem(
       title: '혜택 안내',
       icon: Icons.card_giftcard,
       gradient: [Color(0xFFFF8C8C), Color(0xFFFFB6B6)],
-      screen: BenefitScreen(),
+      screen: BenefitScreen(), // BenefitScreen으로 이동
     ),
     MenuItem(
       title: '주변 시설',
@@ -105,47 +109,23 @@ class MainGridMenu extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               childAspectRatio: 1,
-              children:
-              items.map((item) => _buildGridItem(item, context)).toList(),
+              children: items.map((item) => _buildGridItem(item, context)).toList(),
             ),
           ),
-          const SizedBox(height: 16),
-
-          ///  동그라미 AI 버튼
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 100, // 버튼 전체 크기 조정
-              height: 100,
-              child: FloatingActionButton(
-                onPressed: () {
-                  // AI 기능 연결 예정
-                },
-                backgroundColor: Colors.blueAccent,
-                child: const Icon(Icons.android, size: 60, color: Colors.white), // 약간 여유 있게
-                shape: const CircleBorder(),
-                elevation: 4,
-              ),
-            ),
-          ),
-
-
-          const SizedBox(height: 16),
-
-          ///  정보 입력하기 버튼
+          SizedBox(height: 16),
           SizedBox(
-            width: double.infinity,
+            width: double.infinity,  // 가로 꽉 채우기
             height: 48,
             child: ElevatedButton(
               onPressed: () {
+                // 버튼 눌렀을 때 동작
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => InfoInputMainScreen()),
+                  MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
                 );
               },
-              child: const Text(
-                '프로필 정보 입력하기',
+              child: Text(
+                '정보 입력하기',
                 style: TextStyle(fontSize: 16),
               ),
             ),
@@ -155,6 +135,7 @@ class MainGridMenu extends StatelessWidget {
     );
   }
 
+
   Widget _buildGridItem(MenuItem item, BuildContext context) {
     return Material(
       elevation: 4,
@@ -162,6 +143,7 @@ class MainGridMenu extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
+          // 해당 화면으로 이동
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => item.screen),
@@ -200,6 +182,7 @@ class MainGridMenu extends StatelessWidget {
   }
 }
 
+
 /// 메뉴 아이템 모델
 class MenuItem {
   final String title;
@@ -211,6 +194,6 @@ class MenuItem {
     required this.title,
     required this.icon,
     required this.gradient,
-    required this.screen,
+    required this.screen, //스크린 이동 파라미터
   });
 }

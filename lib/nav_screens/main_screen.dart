@@ -1,25 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:capstone/nav_screens/main_nav.dart';
-import 'package:capstone/nav_screens/calendar_screen.dart';
 import 'package:capstone/nav_screens/profile_screen.dart';
-import 'package:capstone/nav_screens/qna_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:capstone/detail_screens/benefit_screen.dart';
 import 'package:capstone/detail_screens/checklist_screen.dart';
 import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
 import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
 
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: MainScreen(),
-    );
-  }
-}
+import 'main_nav.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -52,7 +39,7 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         foregroundColor: Colors.black,
       )
-          : null, // 👉 다른 화면일 땐 AppBar 없앰
+          : null,
       backgroundColor: const Color(0xFFF7F5F4),
       body: _getBody(),
       bottomNavigationBar: BottomNavBar(
@@ -63,42 +50,53 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-
-/// 메인 화면 2x2 그리드 메뉴
 class MainGridMenu extends StatelessWidget {
   const MainGridMenu({Key? key}) : super(key: key);
 
+  List<MenuItem> _getMenuItems(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-
-  static List<MenuItem> items = [
-    MenuItem(
-      title: '혜택 안내',
-      icon: Icons.card_giftcard,
-      gradient: [Color(0xFFFF8C8C), Color(0xFFFFB6B6)],
-      screen: BenefitScreen(), // BenefitScreen으로 이동
-    ),
-    MenuItem(
-      title: '주변 시설',
-      icon: Icons.place,
-      gradient: [Color(0xFFFFD57E), Color(0xFFFFE1A8)],
-      screen: NearbyScreen(),
-    ),
-    MenuItem(
-      title: '체크리스트',
-      icon: Icons.check_circle_outline,
-      gradient: [Color(0xFF88D8E8), Color(0xFFA8D5FF)],
-      screen: ChecklistScreen(),
-    ),
-    MenuItem(
-      title: '맞춤 정보',
-      icon: Icons.info_outline,
-      gradient: [Color(0xFFA3EFA9), Color(0xFFC1E1C1)],
-      screen: InfoScreen(),
-    ),
-  ];
+    return [
+      MenuItem(
+        title: '혜택 안내',
+        icon: Icons.card_giftcard,
+        gradient: isDark
+            ? [Color(0xFFB04040), Color(0xFF802020)]
+            : [Color(0xFFFF8C8C), Color(0xFFFFB6B6)],
+        screen: BenefitScreen(),
+      ),
+      MenuItem(
+        title: '주변 시설',
+        icon: Icons.place,
+        gradient: isDark
+            ? [Color(0xFFB28F3D), Color(0xFF806E2A)]
+            : [Color(0xFFFFD57E), Color(0xFFFFE1A8)],
+        screen: NearbyScreen(),
+      ),
+      MenuItem(
+        title: '체크리스트',
+        icon: Icons.check_circle_outline,
+        gradient: isDark
+            ? [Color(0xFF4C7F8F), Color(0xFF3A5D6B)]
+            : [Color(0xFF88D8E8), Color(0xFFA8D5FF)],
+        screen: ChecklistScreen(),
+      ),
+      MenuItem(
+        title: '맞춤 정보',
+        icon: Icons.info_outline,
+        gradient: isDark
+            ? [Color(0xFF5A8B63), Color(0xFF3B5C39)]
+            : [Color(0xFFA3EFA9), Color(0xFFC1E1C1)],
+        screen: InfoScreen(),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final items = _getMenuItems(context);
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
@@ -109,16 +107,16 @@ class MainGridMenu extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               childAspectRatio: 1,
-              children: items.map((item) => _buildGridItem(item, context)).toList(),
+              children:
+              items.map((item) => _buildGridItem(item, context, isDark)).toList(),
             ),
           ),
           SizedBox(height: 16),
           SizedBox(
-            width: double.infinity,  // 가로 꽉 채우기
+            width: double.infinity,
             height: 48,
             child: ElevatedButton(
               onPressed: () {
-                // 버튼 눌렀을 때 동작
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
@@ -128,6 +126,9 @@ class MainGridMenu extends StatelessWidget {
                 '정보 입력하기',
                 style: TextStyle(fontSize: 16),
               ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.teal[700] : null,
+              ),
             ),
           ),
         ],
@@ -135,15 +136,13 @@ class MainGridMenu extends StatelessWidget {
     );
   }
 
-
-  Widget _buildGridItem(MenuItem item, BuildContext context) {
+  Widget _buildGridItem(MenuItem item, BuildContext context, bool isDark) {
     return Material(
       elevation: 4,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          // 해당 화면으로 이동
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => item.screen),
@@ -182,8 +181,6 @@ class MainGridMenu extends StatelessWidget {
   }
 }
 
-
-/// 메뉴 아이템 모델
 class MenuItem {
   final String title;
   final IconData icon;
@@ -194,6 +191,6 @@ class MenuItem {
     required this.title,
     required this.icon,
     required this.gradient,
-    required this.screen, //스크린 이동 파라미터
+    required this.screen,
   });
 }

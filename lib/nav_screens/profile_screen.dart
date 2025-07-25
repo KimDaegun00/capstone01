@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:capstone/nav_screens/SettingsScreen.dart';
+import 'package:capstone/nav_screens/settingsScreen.dart';
 import 'package:capstone/nav_screens/joinform.dart';
 
 class ProfileScreen extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class InfoInputMainScreen extends StatefulWidget {
   @override
@@ -6,11 +7,13 @@ class InfoInputMainScreen extends StatefulWidget {
 }
 
 class _InfoInputMainScreenState extends State<InfoInputMainScreen> {
-  bool showStageButtons = false;
-  String selectedStage = '';
+  final TextEditingController dayController = TextEditingController();
 
-  final TextEditingController input1Controller = TextEditingController();
-  final TextEditingController input2Controller = TextEditingController();
+  @override
+  void dispose() {
+    dayController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,59 +22,46 @@ class _InfoInputMainScreenState extends State<InfoInputMainScreen> {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  showStageButtons = !showStageButtons;
-                  selectedStage = '';
-                  input1Controller.clear();
-                  input2Controller.clear();
-                });
-              },
-              child: Text('입력 단계 선택'),
+            Text(
+              '며칠 되셨나요?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            if (showStageButtons)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ['전', '중', '후'].map((stage) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedStage = stage;
-                      });
-                    },
-                    child: Text(stage),
-                  );
-                }).toList(),
+            SizedBox(height: 12),
+            TextField(
+              controller: dayController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                labelText: '일 수 입력',
+                border: OutlineInputBorder(),
+                hintText: '숫자만 입력하세요',
               ),
-            if (selectedStage.isNotEmpty) ...[
-              SizedBox(height: 20),
-              Text('$selectedStage 단계 입력창', style: TextStyle(fontSize: 18)),
-              SizedBox(height: 10),
-              TextField(
-                controller: input1Controller,
-                decoration: InputDecoration(
-                  labelText: '$selectedStage 입력 1',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: input2Controller,
-                decoration: InputDecoration(
-                  labelText: '$selectedStage 입력 2',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
+            ),
             Spacer(),
-            ElevatedButton(
-              onPressed: () {
-                // 완료 시 이전 화면으로 이동
-                Navigator.pop(context);
-              },
-              child: Text('완료'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  final dayStr = dayController.text.trim();
+                  if (dayStr.isEmpty || int.tryParse(dayStr) == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('올바른 숫자를 입력하세요')),
+                    );
+                    return;
+                  }
+
+                  final startDate = DateTime.now();
+                  final dayCount = int.parse(dayStr);
+
+                  Navigator.pop(context, {
+                    'startDate': startDate,
+                    'dayCount': dayCount,
+                  });
+                },
+                child: Text('완료'),
+              ),
             ),
           ],
         ),

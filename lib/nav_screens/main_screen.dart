@@ -1,3 +1,4 @@
+import 'package:capstone/nav_screens/ai_screen.dart';
 import 'package:capstone/nav_screens/option_screen.dart';
 import 'package:capstone/nav_screens/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  int? currentWeek;
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
@@ -28,7 +30,14 @@ class _MainScreenState extends State<MainScreen> {
       case 2:
         return OptionScreen();
       default:
-        return const MainGridMenu();
+        return MainGridMenu(
+          currentWeek: currentWeek,
+          onWeekUpdated: (int week) {
+            setState(() {
+              currentWeek = week;
+            });
+          },
+        );
     }
   }
 
@@ -54,7 +63,14 @@ class _MainScreenState extends State<MainScreen> {
 }
 
 class MainGridMenu extends StatelessWidget {
-  const MainGridMenu({Key? key}) : super(key: key);
+  final int? currentWeek;
+  final void Function(int)? onWeekUpdated;
+
+  const MainGridMenu({
+    Key? key,
+    required this.currentWeek,
+    required this.onWeekUpdated,
+  }) : super(key: key);
 
   List<MenuItem> _getMenuItems(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -111,9 +127,16 @@ class MainGridMenu extends StatelessWidget {
               mainAxisSpacing: 16,
               childAspectRatio: 1,
               children:
-              items.map((item) => _buildGridItem(item, context, isDark)).toList(),
+              items.map((item) => _buildGridItem(item, context)).toList(),
             ),
           ),
+          if (currentWeek != null && currentWeek! > 0) ...[
+            SizedBox(height: 12),
+            Text(
+              '${currentWeek}일',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
           SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -122,13 +145,32 @@ class MainGridMenu extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
+                  MaterialPageRoute(builder: (context) => AiScreen()),
                 );
               },
-              child: Text(
-                '정보 입력하기',
-                style: TextStyle(fontSize: 16),
+              child: Text('AI와 대화하기', style: TextStyle(fontSize: 16)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.teal[700] : null,
               ),
+            ),
+          ),
+          SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () async {
+                final result = await Navigator.push<Map<String, dynamic>>(
+                  context,
+                  MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
+                );
+
+                if (result != null && onWeekUpdated != null) {
+                  final int dayCount = result['dayCount'] as int;
+                  onWeekUpdated!(dayCount);
+                }
+              },
+              child: Text('정보 입력하기', style: TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: isDark ? Colors.teal[700] : null,
               ),
@@ -139,7 +181,8 @@ class MainGridMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildGridItem(MenuItem item, BuildContext context, bool isDark) {
+
+  Widget _buildGridItem(MenuItem item, BuildContext context) {
     return Material(
       elevation: 4,
       borderRadius: BorderRadius.circular(20),

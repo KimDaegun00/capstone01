@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:capstone/nav_screens/SettingsScreen.dart';
+import 'package:capstone/nav_screens/joinform.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -16,9 +17,19 @@ class ProfileScreen extends StatelessWidget {
             leading: Icon(Icons.person),
             title: Text('내 정보'),
             onTap: () {
-              // 추후 내 정보 상세 화면 연결 가능
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('내 정보 클릭됨')),
+              );
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.person_add),  // 회원가입 아이콘
+            title: Text('회원가입'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => JoinForm()),
               );
             },
           ),

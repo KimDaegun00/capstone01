@@ -5,6 +5,10 @@ class JoinForm extends StatefulWidget {
   _JoinFormState createState() => _JoinFormState();
 }
 
+/* ... ElevatedButton
+final response = await http.post(
+Uri.parse('https://example.com/api/register'), 백엔드 연결 예제*/
+
 class _JoinFormState extends State<JoinForm> {
   final _formKey = GlobalKey<FormState>();
 

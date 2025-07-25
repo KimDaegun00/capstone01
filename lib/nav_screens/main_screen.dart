@@ -1,3 +1,4 @@
+import 'package:capstone/nav_screens/option_screen.dart';
 import 'package:capstone/nav_screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:capstone/detail_screens/benefit_screen.dart';
@@ -24,6 +25,8 @@ class _MainScreenState extends State<MainScreen> {
     switch (_selectedIndex) {
       case 1:
         return ProfileScreen();
+      case 2:
+        return OptionScreen();
       default:
         return const MainGridMenu();
     }

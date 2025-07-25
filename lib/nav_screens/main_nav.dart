@@ -40,6 +40,11 @@ class BottomNavBar extends StatelessWidget {
             selectedIcon: Icon(Icons.person_outline, color: _iconColor),
             label: '프로필',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined, color: _iconColor),
+            selectedIcon: Icon(Icons.settings_outlined, color: _iconColor),
+            label: '설정',
+          ),
         ],
       ),
     );

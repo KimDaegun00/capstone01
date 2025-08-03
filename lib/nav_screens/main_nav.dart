@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:capstone/main.dart'; // tr(), langNotifier 사용 위해 필요
 
 /// 하단 네비게이션 바 위젯
 class BottomNavBar extends StatelessWidget {
@@ -11,42 +12,50 @@ class BottomNavBar extends StatelessWidget {
     super.key,
   });
 
-  static const Color _backgroundColor = Color(0xFFFDEAE8); // 전체 배경
-  static const Color _indicatorColor = Color(0xFFFCDADA); // 선택 배경
-  static const Color _iconColor = Colors.black; // 공통 아이콘 색
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: _backgroundColor,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: NavigationBar(
-        height: 64,
-        elevation: 0,
-        selectedIndex: selectedIndex,
-        onDestinationSelected: onItemTapped,
-        backgroundColor: _backgroundColor,
-        indicatorColor: _indicatorColor,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined, color: _iconColor),
-            selectedIcon: Icon(Icons.home_outlined, color: _iconColor),
-            label: '메인',
+    final backgroundColor =
+    isDark ? const Color(0xFF1E1E1E) : const Color(0xFFFDEAE8);
+    final indicatorColor =
+    isDark ? Colors.teal.shade700 : const Color(0xFFFCDADA);
+    final iconColor = isDark ? Colors.white : Colors.black;
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: langNotifier,
+      builder: (context, isEnglish, _) {
+        return Container(
+          color: backgroundColor,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: NavigationBar(
+            height: 64,
+            elevation: 0,
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onItemTapped,
+            backgroundColor: backgroundColor,
+            indicatorColor: indicatorColor,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined, color: iconColor),
+                selectedIcon: Icon(Icons.home_outlined, color: iconColor),
+                label: tr('메인', 'Home'),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline, color: iconColor),
+                selectedIcon: Icon(Icons.person_outline, color: iconColor),
+                label: tr('프로필', 'Profile'),
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined, color: iconColor),
+                selectedIcon: Icon(Icons.settings_outlined, color: iconColor),
+                label: tr('설정', 'Settings'),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline, color: _iconColor),
-            selectedIcon: Icon(Icons.person_outline, color: _iconColor),
-            label: '프로필',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined, color: _iconColor),
-            selectedIcon: Icon(Icons.settings_outlined, color: _iconColor),
-            label: '설정',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -1,34 +1,34 @@
-import 'package:capstone/nav_screens/ai_screen.dart';
-import 'package:capstone/nav_screens/option_screen.dart';
-import 'package:capstone/nav_screens/profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:capstone/main.dart'; // tr(), langNotifier
+import 'package:capstone/nav_screens/ai_screen.dart';
+import 'package:capstone/nav_screens/profile_screen.dart';
+import 'package:capstone/nav_screens/settingsScreen.dart';
 import 'package:capstone/detail_screens/benefit_screen.dart';
 import 'package:capstone/detail_screens/checklist_screen.dart';
 import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
 import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
-
 import 'main_nav.dart';
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   int? currentWeek;
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
+  void _onItemTapped(int index) => setState(() => _selectedIndex = index);
 
   Widget _getBody() {
     switch (_selectedIndex) {
       case 1:
-        return ProfileScreen();
+        return ProfileScreen();          // ⬅ const 제거
       case 2:
-        return OptionScreen();
+        return SettingsScreen();         // ⬅ const 제거
       default:
         return MainGridMenu(
           currentWeek: currentWeek,
@@ -46,13 +46,13 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: _selectedIndex == 0
           ? AppBar(
-        title: const Text('메인화면'),
-        backgroundColor: Colors.white,
+        title: Text(tr('메인화면', 'Home')),
         elevation: 0,
-        foregroundColor: Colors.black,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       )
           : null,
-      backgroundColor: const Color(0xFFF7F5F4),
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: _getBody(),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
@@ -61,6 +61,8 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+/* ───────────────────────── MainGridMenu ───────────────────────── */
 
 class MainGridMenu extends StatelessWidget {
   final int? currentWeek;
@@ -73,40 +75,40 @@ class MainGridMenu extends StatelessWidget {
   }) : super(key: key);
 
   List<MenuItem> _getMenuItems(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return [
       MenuItem(
-        title: '혜택 안내',
+        title: tr('혜택 안내', 'Benefits'),
         icon: Icons.card_giftcard,
         gradient: isDark
-            ? [Color(0xFFB04040), Color(0xFF802020)]
-            : [Color(0xFFFF8C8C), Color(0xFFFFB6B6)],
-        screen: BenefitScreen(),
+            ? [const Color(0xFFB04040), const Color(0xFF802020)]
+            : [const Color(0xFFFF8C8C), const Color(0xFFFFB6B6)],
+        screen: BenefitScreen(),         // ⬅ const 제거
       ),
       MenuItem(
-        title: '주변 시설',
+        title: tr('주변 시설', 'Nearby'),
         icon: Icons.place,
         gradient: isDark
-            ? [Color(0xFFB28F3D), Color(0xFF806E2A)]
-            : [Color(0xFFFFD57E), Color(0xFFFFE1A8)],
-        screen: NearbyScreen(),
+            ? [const Color(0xFFB28F3D), const Color(0xFF806E2A)]
+            : [const Color(0xFFFFD57E), const Color(0xFFFFE1A8)],
+        screen: NearbyScreen(),          // ⬅ const 제거
       ),
       MenuItem(
-        title: '체크리스트',
+        title: tr('체크리스트', 'Checklist'),
         icon: Icons.check_circle_outline,
         gradient: isDark
-            ? [Color(0xFF4C7F8F), Color(0xFF3A5D6B)]
-            : [Color(0xFF88D8E8), Color(0xFFA8D5FF)],
-        screen: ChecklistScreen(),
+            ? [const Color(0xFF4C7F8F), const Color(0xFF3A5D6B)]
+            : [const Color(0xFF88D8E8), const Color(0xFFA8D5FF)],
+        screen: ChecklistScreen(),       // ⬅ const 제거
       ),
       MenuItem(
-        title: '맞춤 정보',
+        title: tr('맞춤 정보', 'Custom Info'),
         icon: Icons.info_outline,
         gradient: isDark
-            ? [Color(0xFF5A8B63), Color(0xFF3B5C39)]
-            : [Color(0xFFA3EFA9), Color(0xFFC1E1C1)],
-        screen: InfoScreen(),
+            ? [const Color(0xFF5A8B63), const Color(0xFF3B5C39)]
+            : [const Color(0xFFA3EFA9), const Color(0xFFC1E1C1)],
+        screen: InfoScreen(),            // ⬅ const 제거
       ),
     ];
   }
@@ -114,12 +116,17 @@ class MainGridMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _getMenuItems(context);
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+
+    const lightBg = Color(0xFFF5F0FF);
+    const lightFg = Color(0xFF7F52FF);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
         children: [
+          /* ===== 그리드 메뉴 ===== */
           Expanded(
             child: GridView.count(
               crossAxisCount: 2,
@@ -130,31 +137,47 @@ class MainGridMenu extends StatelessWidget {
               items.map((item) => _buildGridItem(item, context)).toList(),
             ),
           ),
+
+          /* ===== 임신일 수 표시 ===== */
           if (currentWeek != null && currentWeek! > 0) ...[
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               '${currentWeek}일',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
             ),
           ],
-          SizedBox(height: 16),
+
+          const SizedBox(height: 16),
+
+          /* ===== AI와 대화하기 버튼 ===== */
           SizedBox(
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AiScreen()),
-                );
-              },
-              child: Text('AI와 대화하기', style: TextStyle(fontSize: 16)),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AiScreen()), // ⬅ const 제거
+              ),
+              child: Text(tr('AI와 대화하기', 'Chat with AI'),
+                  style: const TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.teal[700] : null,
+                backgroundColor: isDark ? primary : lightBg,
+                foregroundColor: isDark ? Colors.white : lightFg,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
               ),
             ),
           ),
-          SizedBox(height: 16),
+
+          const SizedBox(height: 16),
+
+          /* ===== 정보 입력하기 버튼 ===== */
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -162,17 +185,22 @@ class MainGridMenu extends StatelessWidget {
               onPressed: () async {
                 final result = await Navigator.push<Map<String, dynamic>>(
                   context,
-                  MaterialPageRoute(builder: (context) => InfoInputMainScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => InfoInputMainScreen()), // ⬅ const 제거
                 );
-
                 if (result != null && onWeekUpdated != null) {
-                  final int dayCount = result['dayCount'] as int;
-                  onWeekUpdated!(dayCount);
+                  onWeekUpdated!(result['dayCount'] as int);
                 }
               },
-              child: Text('정보 입력하기', style: TextStyle(fontSize: 16)),
+              child: Text(tr('정보 입력하기', 'Input Info'),
+                  style: const TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.teal[700] : null,
+                backgroundColor: isDark ? primary : lightBg,
+                foregroundColor: isDark ? Colors.white : lightFg,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
               ),
             ),
           ),
@@ -181,19 +209,15 @@ class MainGridMenu extends StatelessWidget {
     );
   }
 
-
+  /* ───────────────────── MenuItem 카드 ───────────────────── */
   Widget _buildGridItem(MenuItem item, BuildContext context) {
     return Material(
       elevation: 4,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => item.screen),
-          );
-        },
+        onTap: () =>
+            Navigator.push(context, MaterialPageRoute(builder: (_) => item.screen)),
         splashColor: Colors.white24,
         child: Container(
           decoration: BoxDecoration(

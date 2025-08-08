@@ -84,7 +84,7 @@ class MainGridMenu extends StatelessWidget {
         gradient: isDark
             ? [const Color(0xFFB04040), const Color(0xFF802020)]
             : [const Color(0xFFFF8C8C), const Color(0xFFFFB6B6)],
-        screen: BenefitScreen(),         // ⬅ const 제거
+        screen: PolicyRecommendationPage(),         // ⬅ const 제거
       ),
       MenuItem(
         title: tr('주변 시설', 'Nearby'),

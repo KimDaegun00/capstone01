@@ -18,7 +18,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse(
-          'https://kimdaegun00.github.io/example_map/map01.html'));
+          'https://kimdaegun00.github.io/example_map/main_map.html'));
   }
 
   @override

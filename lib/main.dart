@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'nav_screens/main_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://qzkdirgocngvylcowfnj.supabase.co',
+    anonKey: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6a2RpcmdvY25ndnlsY293Zm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NDExNDIsImV4cCI6MjA2OTAxNzE0Mn0.WRrFY4wBpdMfOzKKpA1jDmEhTBx8EZBO0Eqzh9uIs_A',
+  );
+
   runApp(const MyApp());
 }
 

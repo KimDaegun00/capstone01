@@ -1,21 +1,258 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>KaKaoMap Study</title>
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ce6c56a1529590b6877c8eaef7a029c3&autoload=false"></script>
-    <script type="text/javascript">
-        kakao.maps.load(function () {
-            var container = document.getElementById('map');
-            var options = {
-                center: new kakao.maps.LatLng(33.450701, 126.570667),
-                level: 3
-            };
-            var map = new kakao.maps.Map(container, options);
-        });
-    </script>
+    <meta charset="UTF-8" />
+    <title>KaKaoMap Study - 왼쪽 사이드 팝업 + 내 위치 버튼</title>
+    <style>
+        /* 지도는 화면 전체 사용 */
+        #map {
+          width: 100%;
+          height: 100vh;
+        }
+
+        /* 왼쪽에 고정된 팝업(모달) 스타일 */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;          /* 왼쪽 끝 고정 */
+          width: 300px;      /* 너비 고정 */
+          height: 100%;      /* 화면 전체 높이 */
+          background: #fff;
+          box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+          display: none;     /* 기본 숨김 */
+          flex-direction: column;
+          padding: 20px;
+          z-index: 1000;
+          overflow-y: auto;  /* 내용 넘칠 때 스크롤 */
+          font-family: Arial, sans-serif;
+        }
+
+        .modal-content {
+          position: relative;
+          background: none;
+          box-shadow: none;
+          padding: 0;
+          width: 100%;
+          border-radius: 0;
+        }
+
+        /* 닫기 버튼 */
+        .modal-close {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 22px;
+          border: none;
+          background: none;
+        }
+
+        /* 오른쪽 하단 내 위치 버튼 스타일 */
+        #myLocationBtn {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          width: 50px;
+          height: 50px;
+          background: white;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1100;
+          transition: background 0.3s;
+        }
+
+        #myLocationBtn:hover {
+          background: #e0e0e0;
+        }
+
+        /* 위치 아이콘 (간단한 SVG) */
+        #myLocationBtn svg {
+          width: 24px;
+          height: 24px;
+          fill: #333;
+        }
+    </style>
 </head>
 <body>
-<div id="map" style="width: 100%; height: 100%;"></div>
+<div id="map"></div>
+
+<!-- 왼쪽 팝업 모달 -->
+<div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalBuilding">
+    <div class="modal-content">
+        <button id="modalClose" class="modal-close" aria-label="닫기">&times;</button>
+        <h2 id="modalBuilding">건물명</h2>
+        <p><strong>지역:</strong> <span id="modalRegion"></span></p>
+        <p><strong>설명:</strong> <span id="modalDescription"></span></p>
+    </div>
+</div>
+
+<!-- 내 위치 버튼 -->
+<div id="myLocationBtn" title="내 위치로 이동">
+    <svg viewBox="0 0 24 24">
+        <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0-6c.552 0 1 .448 1 1v2.07a7.008 7.008 0 014.95 4.95H20c.552 0 1 .448 1 1s-.448 1-1 1h-2.05a7.008 7.008 0 01-4.95 4.95V19c0 .552-.448 1-1 1s-1-.448-1-1v-2.05a7.008 7.008 0 01-4.95-4.95H4c-.552 0-1-.448-1-1s.448-1 1-1h2.05a7.008 7.008 0 014.95-4.95V3c0-.552.448-1 1-1z"/>
+    </svg>
+</div>
+
+<!-- 카카오 지도 API -->
+<script
+        type="text/javascript"
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ce6c56a1529590b6877c8eaef7a029c3"
+></script>
+
+<script>
+    var container = document.getElementById("map");
+    var options = {
+      center: new kakao.maps.LatLng(33.450701, 126.570667),
+      level: 3,
+    };
+    var map = new kakao.maps.Map(container, options);
+
+    var markers = [];
+
+    var modal = document.getElementById("modal");
+    var modalCloseBtn = document.getElementById("modalClose");
+    var modalBuilding = document.getElementById("modalBuilding");
+    var modalRegion = document.getElementById("modalRegion");
+    var modalDescription = document.getElementById("modalDescription");
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+    modalCloseBtn.addEventListener("click", closeModal);
+
+    function clearMarkers() {
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
+      markers = [];
+    }
+
+    function updateMarkers(locations) {
+      clearMarkers();
+
+      if (locations.length > 0) {
+        var center = new kakao.maps.LatLng(locations[0][0], locations[0][1]);
+        map.setCenter(center);
+      }
+
+      var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+      var imageSize = new kakao.maps.Size(24, 35);
+      var imageOption = { offset: new kakao.maps.Point(12, 35) };
+      var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+
+      for (var i = 0; i < locations.length; i++) {
+        (function() {
+          var loc = locations[i];
+          var position = new kakao.maps.LatLng(loc[0], loc[1]);
+          var region = loc[2];
+          var building = loc[3];
+          var description = loc[4];
+
+          var marker = new kakao.maps.Marker({
+            position: position,
+            image: markerImage,
+            title: building
+          });
+
+          marker.setMap(map);
+          markers.push(marker);
+
+          kakao.maps.event.addListener(marker, "click", function() {
+            modalBuilding.textContent = building;
+            modalRegion.textContent = region;
+            modalDescription.textContent = description;
+            modal.style.display = "flex";
+          });
+        })();
+      }
+    }
+
+    // 내 위치 버튼 이벤트
+    var myLocationBtn = document.getElementById("myLocationBtn");
+
+    myLocationBtn.addEventListener("click", function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            var locPosition = new kakao.maps.LatLng(lat, lng);
+            map.setCenter(locPosition);
+            map.setLevel(3);
+
+            // 현재 위치 마커 표시 (기존 있으면 제거)
+            if (window.currentLocationMarker) {
+              window.currentLocationMarker.setMap(null);
+            }
+            window.currentLocationMarker = new kakao.maps.Marker({
+              position: locPosition,
+              map: map,
+              title: "내 위치",
+              clickable: false,
+              image: new kakao.maps.MarkerImage(
+                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+                new kakao.maps.Size(24, 35),
+                { offset: new kakao.maps.Point(12, 35) }
+              ),
+            });
+          },
+          function(error) {
+            alert("현재 위치를 가져올 수 없습니다.");
+            console.error(error);
+          }
+        );
+      } else {
+        alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+      }
+    });
+
+    const edgeFunctionUrl = "https://kgbglwgpwcczbebmwbbd.supabase.co/functions/v1/super-task";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnYmdsd2dwd2NjemJlYm13YmJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDQzMzYsImV4cCI6MjA2OTcyMDMzNn0.h22t1AHSPEuhaF7N-f_M_zWBGCaU71PiPMcquvbMabw";
+
+    function transformData(rawData) {
+      return rawData.map(item => [
+        Number(item.gpsLat),
+        Number(item.gpsLong),
+        item.address,
+        item.roomName,
+        `위치: ${item.location} / ${item.fatherUseNm} / 전화: ${item.managerTelNo}`
+      ]);
+    }
+
+    async function fetchAndUpdateMarkers() {
+      try {
+        const res = await fetch(edgeFunctionUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseAnonKey}`
+          },
+          body: JSON.stringify({})
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const locations = transformData(data);
+
+        updateMarkers(locations);
+      } catch (error) {
+        console.error("데이터 로드 중 오류:", error);
+        alert("수유실 데이터를 불러오는 데 실패했습니다.");
+      }
+    }
+
+    window.onload = function() {
+      fetchAndUpdateMarkers();
+    };
+</script>
 </body>
 </html>

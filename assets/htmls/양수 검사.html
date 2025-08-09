@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+	<meta charset="utf-8">
+
+    <!-- 공통 -->
+    <script type="text/javascript" src="/healthinfo/static/js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="/healthinfo/static/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="/healthinfo/static/abs/default/jqueryui/jquery-ui.js"></script><!-- 팝업 영향 -->
+    <script type="text/javascript" src="/healthinfo/static/abs/default/jquery/jquery.blockUI.js"></script><!-- 신체정보 영향 -->
+    
+<!--// 버전관리 -->
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/css/common_v1_7.css">
+    <link rel="stylesheet" type="text/css" media="(max-width:1680px)" href="/healthinfo/static/css/tab_v1_2.css">
+    <link rel="stylesheet" type="text/css" media="(max-width:1680px)" href="/healthinfo/static/css/mobile_v1_4.css">
+<!-- 버전관리 //-->
+    <link rel="stylesheet" type="text/css" media="screen" href="/healthinfo/static/abs/default/jqueryui/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/healthinfo/static/abs/default/jqgrid/css/ui.jqgrid.css">
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/css/webfonts.css">
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/css/biz/health/slick.css">
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/css/biz/health/slick-theme.css">
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/css/swiper.min.css">
+    <link rel="stylesheet" type="text/css" href="/healthinfo/static/abs/common/css/popup-0.0.1.css"><!-- 팝업영향 -->
+    <link rel="stylesheet" href="/healthinfo/static/js/common/cropper/cropper.css">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+    
+    <style>
+		.sub-content.p-0 {
+			padding: 0;
+		}
+		
+		.data-content.p-50 {
+			padding-top: 50px;
+		}
+		
+		.mB-50 {
+			margin-bottom: 50px;
+		}
+	</style>
+	
+	<title>양수 검사</title>
+
+	<script type="text/javascript">
+		
+        $(document).ready(function() {
+
+		});
+
+		function fn_goBack() {
+			$("#gnrlzHealthInfoViewForm").attr("action", "/healthinfo/openapi/svcNew/healthSearchListApi.do");
+			$("#gnrlzHealthInfoViewForm").submit();
+		}
+	</script>
+</head>
+<body>
+<div id="container">
+	<div class="contents-wrap">
+		<div id="sub-content" class="sub-content p-0">
+			<form id="gnrlzHealthInfoViewForm" name="gnrlzHealthInfoViewForm" method="post">
+				<input type="hidden" id="lclasSn" name="lclasSn" value="">
+				<input type="hidden" id="srchWrd" name="srchWrd" value="">
+				<input type="hidden" id="pageIndex" name="pageIndex" value="9">
+				<input type="hidden" id="TOKEN" name="TOKEN" value="196c20bbeb88">
+				
+				<div class="data-content p-50">
+					<h2><strong id="subContentSj">양수 검사</strong></h2>
+					<div class="hd-contents">
+						<div id="print-content">
+						    <!-- 폼 레이어  -->
+							<div id="contentsDiv1" style="text-align: left;" class="contents-Div">
+										<h3 style="border-bottom: #ffffff 1px solid;">
+											        요약문</h3>
+	                                            <div style="border:3px solid #ffa500; border-radius: 5px; padding: 30px;">
+	                                                <p><span style="color: rgb(58, 50, 195);">'이것만은 꼭 기억하세요'</span></p><ul><li>양수 검사는 임신 15~20주 사이에 임신부의 복부를 통해 양수를 채취하여 태아의 염색체 이상 여부를 확인하는 검사입니다.&nbsp;</li><li>다운증후군, 에드워드 증후군 등 염색체 수나 구조 이상, 특정 유전 질환 진단에 사용되며, 검사 정확도는 99% 이상입니다.&nbsp;</li><li>검사 대상은 고령 임신부, 선별 검사 결과 고위험군, 가족력 등 다양한 이유로 전문의가 필요하다고 판단한 경우입니다.&nbsp;</li><li>시술은 초음파를 보며 안전하게 진행되지만, 드물게 유산이나 양막 파수 같은 합병증이 생길 수 있습니다.&nbsp;</li><li>따라서 검사 전 반드시 주치의와 충분히 상담한 뒤 결정하는 것이 중요합니다.</li></ul></div>
+                                            </div>
+								<div id="contentsDiv2" style="text-align: left;" class="contents-Div">
+										<h3>개요</h3>
+	                                                <p>양수 검사(양수 천자술)란 임신 15~20주 사이에 임신부의 복부를 통해 바늘을 넣어 양수를 채취하는 검사입니다. 일반적으로 태아의 염색체 분석을 위해 가장 많이 시행되는 검사입니다. </p><p>쌍둥이를 임신한 경우에도 양수 검사가 가능합니다.  </p><p><br></p><table border="0" cellpadding="0" cellspacing="0" style="text-align: center;" class="__se_tbl" id="4818_236_TB_ae7fae7f"> 
+ <tbody> 
+  <tr> 
+   <td colspan="2" rowspan="1" class="neoTableTitle">양수검사</td> 
+  </tr> 
+  <tr> 
+   <th class="neoTableCell" style="border-left:none">&nbsp;검사목적</th> 
+   <td class="neoTableCell" style="text-align: left; background: white;">&nbsp;태아의 염색체 확인&nbsp;</td> 
+  </tr> 
+  <tr> 
+   <th class="neoTableCell" style="border-left:none">&nbsp;검사 방법</th> 
+   <td class="neoTableCell" style="text-align: left">&nbsp;초음파 영상을 보면서 임신부 복부를 통해 바늘을 양수 내에 주입하여 양수를 채취한 후 양수 내 세포를 배양하여 태아 염색체를 확인&nbsp;</td> 
+  </tr> 
+  <tr> 
+   <th class="neoTableCell" style="border-left:none">&nbsp;검사 시기</th> 
+   <td class="neoTableCell" style="text-align: left">&nbsp;임신 15~20주&nbsp;</td> 
+  </tr> 
+  <tr> 
+   <th class="neoTableCell" style="border-left:none">&nbsp;검사 결과</th> 
+   <td class="neoTableCell" style="text-align: left">&nbsp;태아의 정확한 염색체 숫자를 알 수 있어 태아 염색체의 수적 결함을 확인&nbsp;</td> 
+  </tr> 
+  <tr> 
+   <td colspan="2" rowspan="1" class="neoTableCaption"><br></td> 
+  </tr> 
+ </tbody> 
+</table><p><br> </p>
+                                    </div>
+								<div id="contentsDiv3" style="text-align: left;" class="contents-Div">
+										<h3>검사 목적</h3>
+	                                                <p>양수를 채취하여 양수 안 태아 세포를 배양 후 염색체 분석을 하기 위한 검사입니다. 염색체의 수와 구조적 문제 뿐 아니라 특정 유전 질환을 진단하기 위해 시행하기도 합니다. 다음과 같은 경우에 양수 검사를 고려하게 됩니다. </p><p> - 고령의 임신부 </p><p> - 임신부나 배우자가 염색체의 구조적 이상이 있는 경우 </p><p> - 선천성 기형, 염색체 이상이 있는 아기를 분만한 경험이 있는 경우</p><p> - 산전 모체 혈청 선별 검사, 태아 DNA 선별 검사 결과가 고위험인 경우 </p><p> - 초음파 검사에서 태아의 구조적 이상 소견이 있는 경우 </p><p> - 유전 질환 가족력이 있는 경우 </p><p> - 그 외 전문의 판단 하에 검사가 필요한 경우 </p>
+                                    </div>
+								<div id="contentsDiv4" style="text-align: left;" class="contents-Div">
+										<h3>검사 적응증 및 금기증</h3>
+	                                                <p>태아의 산전 검사를 받기를 원하는 모든 임신부가 검사의 적응증이 됩니다. 모체 혈청 선별 검사, 태아 DNA 선별 검사와 양수 검사 같은 <span class="tooltip" title="침습(侵襲)적">침습적</span>  진단 검사의 장단점에 대해 전문가의 상담을 받고 산모와 가족이 어떤 검사를 받을지 최종적으로 결정하게 됩니다.  </p>
+                                    </div>
+								<div id="contentsDiv5" style="text-align: left;" class="contents-Div">
+										<h3>검사 검체</h3>
+	                                                <p>임신 15주 이후에 임신부의 복부를 통해 바늘을 넣어 양수를 채취합니다. 양수를 채취하여 양수 안 태아 세포를 배양 후 염색체 분석을 하게 됩니다.</p><p><br></p><p><img src="https://is.kdca.go.kr/cscdnhfile/health/healthNewDown/healthInfoFileDown.do?SEQ=17a74d0348f1" style="display:block; margin:0px auto; max-width:100%; height:auto;" alt="양수검사"></p>
+                                    </div>
+								<div id="contentsDiv6" style="text-align: left;" class="contents-Div">
+										<h3>검사 항목</h3>
+	                                                <p>태아의 세포 유전학 검사를 통해 다운증후군이나 에드워드 증후군 같은 염색체의 수의 이상을 진단할 수 있습니다. 세포 배양 과정이 필요하므로 보통 2-3주 후에 결과를 알 수 있습니다. 최근에는 필요한 경우, 염색체 마이크로어레이(microarray) 검사를 통해 염색체의 미세 결실 및 중복을 발견하는 검사를 진행하기도 합니다. </p>
+                                    </div>
+								<div id="contentsDiv10" style="text-align: left;" class="contents-Div">
+										<h3>검사 결과 해석</h3>
+	                                                <p>태아의 세포 유전학 검사의 정확도는 99% 이상으로 알려져 있습니다. 하지만 염색체 분석 결과가 정상이라도 염색체의 미세한 구조 이상이나 낮은 빈도의 모자이크 현상(mosaicism) 등 검사 방법의 한계를 벗어난 결과는 진단하기가 어렵습니다. </p>
+                                    </div>
+								<div id="contentsDiv11" style="text-align: left;" class="contents-Div">
+										<h3>주의사항 및 부작용</h3>
+	                                                <p>양수를 채취하기 위해 복부를 바늘로 찌르게 되므로 많은 임신부들은 태아가 위험하지 않을까 걱정하게 됩니다. 양수 검사는 초음파를 보면서 태아, 탯줄, 태반을 피해서 바늘을 찌르기 때문에 태아를 찌를 가능성은 거의 없으며, 복부를 소독한 후에 멸균된 바늘을 사용하기 때문에 감염의 위험성은 매우 드뭅니다. 하지만 드물게 합병증이 있을 수 있는데 일시적인 질 출혈, 양막 파수가 약 1%에서, 융모막 염증은 0.1% 미만에서 발생할 수 있으며, 시술로 인한 유산은 0.1~0.3%정도의 가능성이 있으므로 검사 전 주치의와 충분한 상담 후 검사를 결정합니다.</p>
+                                    </div>
+								<div id="contentsDiv12" style="text-align: left;" class="contents-Div2">
+										</div>
+								<div id="contentsDiv13" style="text-align: left;" class="contents-Div">
+										</div>
+								</div>
+						
+					</div>
+					<div class="txtC w100 mT10 mB-50">
+						<button type="button" class="btn-blue" onclick="fn_goBack()"><i class="xi-list mR5 mB5"></i>목록</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+</body></html>

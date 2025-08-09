@@ -39,6 +39,7 @@ dependencies:
   webview_flutter_web: ^0.2.3+4
   supabase_flutter: ^2.9.1
   sign_in_with_apple: ^7.0.1
+  flutter_dotenv: ^5.1.0
 
 
 
@@ -65,6 +66,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/kakao_map.html
+    - assets/htmls/
+    - .env
 
 
   # To add assets to your application, add an assets section, like this:

@@ -79,7 +79,7 @@ class MainGridMenu extends StatelessWidget {
 
     return [
       MenuItem(
-        title: tr('혜택 안내', 'Benefits'),
+        title: tr('정책 추천', 'Benefits'),
         icon: Icons.card_giftcard,
         gradient: isDark
             ? [const Color(0xFFB04040), const Color(0xFF802020)]
@@ -103,12 +103,12 @@ class MainGridMenu extends StatelessWidget {
         screen: ChecklistScreen(),       // ⬅ const 제거
       ),
       MenuItem(
-        title: tr('맞춤 정보', 'Custom Info'),
+        title: tr('건강/육아 정보', 'Custom Info'),
         icon: Icons.info_outline,
         gradient: isDark
             ? [const Color(0xFF5A8B63), const Color(0xFF3B5C39)]
             : [const Color(0xFFA3EFA9), const Color(0xFFC1E1C1)],
-        screen: InfoScreen(),            // ⬅ const 제거
+        screen: HealthInfoList(),            // ⬅ const 제거
       ),
     ];
   }

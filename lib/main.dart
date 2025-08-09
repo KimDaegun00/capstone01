@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'nav_screens/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:capstone/config/env_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
 
   await Supabase.initialize(
-    url: 'https://qzkdirgocngvylcowfnj.supabase.co',
-    anonKey: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6a2RpcmdvY25ndnlsY293Zm5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0NDExNDIsImV4cCI6MjA2OTAxNzE0Mn0.WRrFY4wBpdMfOzKKpA1jDmEhTBx8EZBO0Eqzh9uIs_A',
+    url: EnvConfig.supabaseUrl,
+    anonKey: EnvConfig.supabaseAnonKey
   );
 
   runApp(const MyApp());

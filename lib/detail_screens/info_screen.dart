@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:capstone/widgets/local_html_viewer.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -28,7 +31,10 @@ class HealthInfoList extends StatefulWidget {
 
 class _HealthInfoListState extends State<HealthInfoList> {
   List<Map<String, String>> healthInfoList = [];
+  List<Map<String, String>> filteredList = [];
   bool _isLoading = true;
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -38,34 +44,29 @@ class _HealthInfoListState extends State<HealthInfoList> {
 
   Future<void> _loadHealthInfoList() async {
     try {
-      print('=== Assets HTML 파일 목록 로드 시작 ===');
-
-      // assets/htmls 폴더의 HTML 파일 목록 가져오기
       final manifestContent = await rootBundle.loadString('AssetManifest.json');
       final Map<String, dynamic> manifestMap = json.decode(manifestContent);
 
-      // assets/htmls/ 경로의 파일들만 필터링
       final htmlFiles = manifestMap.keys
-          .where((String key) => key.startsWith('assets/htmls/') && key.endsWith('.html'))
-          .map((String key) => key.replaceFirst('assets/htmls/', ''))
+          .where((key) => key.startsWith('assets/htmls/') && key.endsWith('.html'))
           .toList();
 
-      print('발견된 HTML 파일 수: ${htmlFiles.length}');
-      for (int i = 0; i < htmlFiles.length; i++) {
-        print('파일 ${i + 1}: ${htmlFiles[i]}');
+      List<Map<String, String>> tempList = [];
+
+      for (var path in htmlFiles) {
+        final fileName = path.replaceFirst('assets/htmls/', '').replaceAll('.html', '');
+        tempList.add({
+          'name': fileName,
+          'path': path, // 나중에 LocalHtmlViewer로 전달
+        });
       }
 
       setState(() {
-        healthInfoList = htmlFiles.map((fileName) => {
-          'name': fileName.replaceAll('.html', '')
-        }).toList();
+        healthInfoList = tempList;
+        filteredList = List.from(healthInfoList);
         _isLoading = false;
       });
-
-      print('=== 파일 목록 로드 완료 ===');
     } catch (e) {
-      print('=== 에러 발생 ===');
-      print('에러 내용: $e');
       setState(() {
         _isLoading = false;
       });
@@ -75,25 +76,70 @@ class _HealthInfoListState extends State<HealthInfoList> {
     }
   }
 
+  void _startSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchQuery = '';
+      filteredList = List.from(healthInfoList);
+    });
+  }
+
+  void _performSearch(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      filteredList = healthInfoList.where((item) {
+        final name = item['name']!.toLowerCase();
+        return name.contains(_searchQuery); // 제목만 검색
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('건강정보 목록'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: !_isSearching
+            ? const Text('건강정보 목록')
+            : TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '검색어를 입력하세요',
+            border: InputBorder.none,
+            hintStyle: TextStyle(color: Colors.black38),
+          ),
+          style: const TextStyle(color: Colors.black, fontSize: 16),
+          onChanged: _performSearch,
+        ),
+        actions: [
+          !_isSearching
+              ? IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _startSearch,
+          )
+              : IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _stopSearch,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-        itemCount: healthInfoList.length,
+        itemCount: filteredList.length,
         itemBuilder: (context, index) {
-          final item = healthInfoList[index];
+          final item = filteredList[index];
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             elevation: 2,
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               leading: CircleAvatar(
                 backgroundColor: Colors.blue.shade100,
                 child: Icon(
@@ -127,7 +173,7 @@ class _HealthInfoListState extends State<HealthInfoList> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => LocalHtmlViewer(
-                      assetPath: 'assets/htmls/${item['name']}.html',
+                      assetPath: item['path']!,
                     ),
                   ),
                 );

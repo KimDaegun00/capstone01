@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:capstone/main.dart'; // tr, themeNotifier, langNotifier 가져옴
-import 'package:capstone/nav_screens/feedback_screen.dart'; // 새로 추가
+import 'package:capstone/main.dart'; // tr, themeNotifier, langNotifier
+import 'package:capstone/nav_screens/feedback_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -13,11 +13,15 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('설정', 'Settings')),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        // 라이트/다크에 따라 자동으로 맞춰짐
+        backgroundColor: cs.surface,
+        foregroundColor: cs.onSurface,
+        elevation: 0,
       ),
       body: ListView(
         children: [

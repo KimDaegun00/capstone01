@@ -268,10 +268,17 @@
 <body>
 <div id="map"></div>
 
-<!-- 상단 바 -->
-<div id="navBar">
-    <div id="navTitle">주변 시설 찾기</div>
-    <div id="navActions">
+<!-- 상단 바-->
+<div id="navBar" style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center;">
+        <button id="backBtn" style="background:none;border:none;padding:0;margin-right:8px;display:flex;align-items:center;cursor:pointer;">
+            <svg width="28" height="28" fill="none" viewBox="0 0 28 28">
+                <path d="M18 22l-8-8 8-8" stroke="#222" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <span id="navTitle" style="margin-left:0;font-size:20px;font-weight:500;color:#222;">주변 시설 찾기</span>
+    </div>
+    <div id="navActions" style="display: flex; gap: 8px; align-items: center;">
         <button id="filterToggleBtn">필터</button>
         <button id="filterResetBtn">초기화</button>
     </div>
@@ -664,6 +671,20 @@
     // 모바일: 화면 클릭시 드롭다운 닫기
     document.addEventListener('touchstart', function(e){
       if (!e.target.closest('.dropdown')) closeAllDropdowns();
+    });
+
+        // === Flutter와 연동되는 뒤로가기 버튼 코드 추가 ===
+    document.addEventListener("DOMContentLoaded", function() {
+      var backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.onclick = function() {
+          if (window.BackChannel && typeof window.BackChannel.postMessage === "function") {
+            window.BackChannel.postMessage('goBack');
+          } else {
+            alert("BackChannel이 없습니다.");
+          }
+        };
+      }
     });
 </script>
 </body>

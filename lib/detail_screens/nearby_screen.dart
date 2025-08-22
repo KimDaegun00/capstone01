@@ -16,23 +16,29 @@ class _NearbyScreenState extends State<NearbyScreen> {
   void initState() {
     super.initState();
     _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted);
-
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'BackChannel',
+        onMessageReceived: (JavaScriptMessage msg) {
+          if (msg.message == 'goBack') {
+            Navigator.of(context).pop();
+          }
+        },
+      );
     _loadHtml();
   }
 
   Future<void> _loadHtml() async {
-    // assets 폴더의 HTML 파일 로드
-    String fileHtmlContents =
-    await rootBundle.loadString('assets/kakao_map.html');
+    String fileHtmlContents = await rootBundle.loadString('assets/kakao_map.html');
     _controller.loadHtmlString(fileHtmlContents);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("카카오맵")),
-      body: WebViewWidget(controller: _controller),
+      body: SafeArea(
+        child: WebViewWidget(controller: _controller),
+      ),
     );
   }
 }

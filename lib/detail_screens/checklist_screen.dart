@@ -270,7 +270,8 @@ class _WeekSectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final bg = data.isCurrent ? cs.secondaryContainer.withOpacity(0.32) : cs.surface;
+    final bg =
+    data.isCurrent ? cs.secondaryContainer.withOpacity(0.32) : cs.surface;
     final borderColor =
     Theme.of(context).dividerColor.withOpacity(data.isCurrent ? 0.0 : 0.6);
 
@@ -338,7 +339,8 @@ class _WeekSectionTile extends StatelessWidget {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: data.isCurrent ? timelineActive : timelineInactive,
+                    color:
+                    data.isCurrent ? timelineActive : timelineInactive,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -368,7 +370,8 @@ class _WeekSectionTile extends StatelessWidget {
               children: [
                 // 날짜 범위 + 진행률 (오버플로우 방지 버전)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                   child: Column(
                     children: [
                       Row(
@@ -379,7 +382,8 @@ class _WeekSectionTile extends StatelessWidget {
                             color: cs.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
-                          Expanded( // 텍스트가 길어도 말줄임으로 처리
+                          Expanded(
+                            // 텍스트가 길어도 말줄임으로 처리
                             child: Text(
                               data.range,
                               maxLines: 1,
@@ -420,8 +424,10 @@ class _WeekSectionTile extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 6,
-                          backgroundColor: cs.onSurface.withOpacity(0.08),
-                          valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
+                          backgroundColor:
+                          cs.onSurface.withOpacity(0.08),
+                          valueColor:
+                          AlwaysStoppedAnimation<Color>(cs.primary),
                         ),
                       ),
                     ],
@@ -488,7 +494,8 @@ class _CheckRow extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             scale: done ? 1.0 : 0.9,
             child: Icon(
-              done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+              // ⬇️ 원형 → 정사각형 체크박스
+              done ? Icons.check_box : Icons.check_box_outline_blank,
               color: done ? cs.primary : cs.onSurface.withOpacity(0.35),
             ),
           ),
@@ -503,8 +510,8 @@ class _CheckRow extends StatelessWidget {
               decorationColor: cs.onSurface.withOpacity(0.35),
             ),
           ),
-          trailing:
-          Icon(Icons.chevron_right, color: cs.onSurface.withOpacity(0.5)),
+          trailing: Icon(Icons.chevron_right,
+              color: cs.onSurface.withOpacity(0.5)),
         ),
       ),
     );

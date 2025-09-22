@@ -4,11 +4,18 @@ import 'nav_screens/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:capstone/config/env_config.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'detail_screens/login_screen.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
+import 'detail_screens/password_reset_page.dart';
+
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  WidgetsFlutterBinding.ensureInitialized(); // 앱 초기화
+  await dotenv.load(fileName: '.env'); // .env 파일 로드
+  usePathUrlStrategy(); // pc에서 딥링크를 사용하기 위해 필수
 
+  // Supabase 초기화
   await Supabase.initialize(
     url: EnvConfig.supabaseUrl,
     anonKey: EnvConfig.supabaseAnonKey
@@ -44,9 +51,7 @@ class _MyAppState extends State<MyApp> {
     colorScheme: const ColorScheme.light(
       primary: Colors.teal,
       secondary: Colors.tealAccent,
-      background: Color(0xFFF7F5F4),
       surface: Colors.white,
-      onBackground: Colors.black,
       onSurface: Colors.black,
     ),
   );
@@ -58,9 +63,7 @@ class _MyAppState extends State<MyApp> {
     colorScheme: const ColorScheme.dark(
       primary: Colors.teal,
       secondary: Colors.tealAccent,
-      background: Color(0xFF121212),
       surface: Color(0xFF1E1E1E),
-      onBackground: Colors.white,
       onSurface: Colors.white,
     ),
   );
@@ -87,16 +90,64 @@ class _MyAppState extends State<MyApp> {
         return ValueListenableBuilder<ThemeMode>(
           valueListenable: themeNotifier,
           builder: (context, currentMode, _) {
-            return MaterialApp(
-              title: 'Mother Compass',
-              debugShowCheckedModeBanner: false,
+            return MaterialApp.router(
+              title: "맘편한AI",
+              routerConfig: _router,
               theme: _lightTheme,
               darkTheme: _darkTheme,
               themeMode: currentMode,
-              home: const MainScreen(), // 기존 루트 화면
+              debugShowCheckedModeBanner: false,
             );
           },
         );
+      },
+    );
+  }
+}
+
+final _router = GoRouter(
+  initialLocation: '/',
+  debugLogDiagnostics: true,
+  routes: [
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state){
+        print('�� /reset-password 라우트 실행됨!');
+        print('🔑 토큰: ${state.uri.queryParameters['token']}');
+        print('📝 타입: ${state.uri.queryParameters['type']}');
+        
+        final token = state.uri.queryParameters['token'];
+        final type = state.uri.queryParameters['type'];
+        return PasswordResetPage(token: token, type: type);
+      },
+    ),
+    GoRoute(
+      path: '/',
+      builder: (context, state){
+        return AuthWrapper();
+      },
+    ),
+  ],
+);
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: Supabase.instance.client.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final session = snapshot.data!.session;
+          if (session != null) {
+            // 로그인된 상태 - 데모 화면으로 이동
+            return const MainScreen();
+          }
+        }
+        
+        // 로그인되지 않은 상태 - 로그인 화면으로 이동
+        return const LoginScreen();
       },
     );
   }

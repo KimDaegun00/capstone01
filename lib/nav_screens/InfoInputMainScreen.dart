@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class InfoInputMainScreen extends StatefulWidget {
+  const InfoInputMainScreen({super.key});
+
   @override
   _InfoInputMainScreenState createState() => _InfoInputMainScreenState();
 }

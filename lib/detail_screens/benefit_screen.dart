@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:capstone/services/auth_service.dart';
 
 class PolicyRecommendationPage extends StatefulWidget {
+  const PolicyRecommendationPage({super.key});
+
   @override
   _PolicyRecommendationPageState createState() => _PolicyRecommendationPageState();
 }
@@ -10,11 +12,146 @@ class PolicyRecommendationPage extends StatefulWidget {
 class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
   final _formKey = GlobalKey<FormState>();
   final _userInputController = TextEditingController();
-  final _topKController = TextEditingController(text: '5');
+  final _topKController = TextEditingController(text: '10');
   bool _loading = false;
   List<Map<String, dynamic>> _results = [];
   String _errorMessage = '';
   String _successMessage = '';
+  final List<String> _categories = const [
+    '보건·의료',
+    '보육·교육',
+    '보호·돌봄',
+    '생활안정',
+    '임신·출산',
+    '주거·자립',
+  ];
+  String? _selectedCategory;
+  final Map<String, List<String>> _categoryKeywordHints = const {
+    '보건·의료': ['예방/접종', '의료비/치료비', '시술비/약제비', '보험료', '검진/검사', '난임'],
+    '보육·교육': ['장학금', '다자녀', '다문화', '교육비/양육비', '축하금/지원금', '유치원/어린이집', '급식'],
+    '보호·돌봄': ['입양', '저소득', '장애인', '돌봄', '가사'],
+    '생활안정': ['감면', '취약계층'],
+    '임신·출산': ['건강관리', '산후조리', '지원금/용품', '검사', '난임', '축하금/장려금'],
+    '주거·자립': ['대출/이자', '청년', '신혼부부', '보증금'],
+  };
+  List<String> _selectedKeywords = [];
+  bool _helperOpen = false;
+  String? _tempSelectedCategory;
+  List<String> _tempSelectedKeywords = [];
+  final _customKeywordsController = TextEditingController(); // 사용자 정의 키워드 컨트롤러
+  
+  // 프로필 정보 반영 관련 변수들
+  bool _useProfileInfo = false;
+  Map<String, dynamic>? _userProfile;
+  bool _profileLoading = false;
+
+  // 프로필 정보 가져오기
+  Future<void> _loadUserProfile() async {
+    if (_profileLoading) return;
+    
+    setState(() {
+      _profileLoading = true;
+    });
+
+      try {
+        final user = AuthService.currentUser;
+        if (user != null) {
+          debugPrint("유저가 있음: ${user.id}");
+          final profile = await AuthService.getUserProfile(user.id);
+          debugPrint("프로필 데이터: $profile");
+          
+          if(profile == null) {
+            debugPrint("profile is null");
+            setState(() {
+              _errorMessage = '프로필 정보를 찾을 수 없습니다.';
+              _profileLoading = false;
+            });
+            return;
+          }
+
+          setState(() {
+            _userProfile = profile;
+            _profileLoading = false;
+          });
+
+          // 프로필 정보를 사용자 입력에 반영
+          _applyProfileToInput();
+        } else {
+          setState(() {
+            _errorMessage = '로그인이 필요합니다.';
+            _profileLoading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _errorMessage = '프로필 정보를 가져오는데 실패했습니다: $e';
+          _profileLoading = false;
+        });
+        print('❌ 프로필 로딩 오류: $e');
+        print('❌ 오류 타입: ${e.runtimeType}');
+        print('❌ 스택 트레이스: ${e.toString()}');
+      }
+  }
+
+  // 프로필 정보를 사용자 입력에 반영
+  void _applyProfileToInput() {
+    if (_userProfile == null) return;
+
+    String profileContext = '';
+    
+    // 주소지 정보 추가
+    if (_userProfile!['주소지'] != null && _userProfile!['주소지'].toString().isNotEmpty) {
+      profileContext += '주소지: ${_userProfile!['주소지']}';
+    }
+    
+    // 성별 정보 추가
+    if (_userProfile!['성별'] != null && _userProfile!['성별'].toString().isNotEmpty) {
+      if (profileContext.isNotEmpty) profileContext += ', ';
+      profileContext += '성별: ${_userProfile!['성별']}';
+    }
+    
+    // 임신여부 정보 추가
+    if (_userProfile!['임신여부'] != null) {
+      if (profileContext.isNotEmpty) profileContext += ', ';
+      final isPregnant = _userProfile!['임신여부'];
+      if (isPregnant is bool) {
+        profileContext += '임신여부: ${isPregnant ? '임신중' : '임신안함'}';
+      } else if (isPregnant is String) {
+        profileContext += '임신여부: $isPregnant';
+      } else {
+        profileContext += '임신여부: ${isPregnant.toString()}';
+      }
+    }
+    
+    // 임신주차 정보 추가
+    if (_userProfile!['임신주차'] != null && _userProfile!['임신주차'].toString().isNotEmpty) {
+      if (profileContext.isNotEmpty) profileContext += ', ';
+      profileContext += '임신주차: ${_userProfile!['임신주차']}주';
+    }
+
+    // 기존 사용자 입력에 프로필 정보 추가
+    final currentInput = _userInputController.text.trim();
+    if (currentInput.isNotEmpty) {
+      _userInputController.text = '$currentInput\n\n[프로필 정보: $profileContext]';
+    } else {
+      _userInputController.text = '[프로필 정보: $profileContext]';
+    }
+  }
+
+  // 프로필 정보를 사용자 입력에서 제거
+  void _removeProfileFromInput() {
+    final currentInput = _userInputController.text.trim();
+    if (currentInput.contains('[프로필 정보:')) {
+      // 프로필 정보 부분을 제거
+      final parts = currentInput.split('\n\n[프로필 정보:');
+      if (parts.length > 1) {
+        _userInputController.text = parts[0].trim();
+      } else {
+        // 프로필 정보만 있는 경우 빈 문자열로 설정
+        _userInputController.text = '';
+      }
+    }
+  }
 
   Future<void> _submitRecommendation() async {
     if (!_formKey.currentState!.validate()) return;
@@ -27,17 +164,29 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
     });
 
     try {
-      final topK = int.tryParse(_topKController.text) ?? 5;
+      final topK = int.tryParse(_topKController.text) ?? 10;
+      
+      // 사용자 정의 키워드와 추천 키워드를 합치는 로직
+      final customKeywords = _customKeywordsController.text
+          .split(',')
+          .map((k) => k.trim())
+          .where((k) => k.isNotEmpty)
+          .toList();
+      final allKeywords = [..._selectedKeywords, ...customKeywords];
+
 
       print('🔄 Edge Function 호출 시작...');
       print('📝 사용자 입력: ${_userInputController.text.trim()}');
       print('🔢 추천 개수: $topK');
+      print('🏷️ 선택된 키워드: $allKeywords'); // 합쳐진 키워드 로그 추가
 
       final response = await Supabase.instance.client.functions.invoke(
         'query-to-policies', // 실제 Edge Function 호출
         body: {
           'userInput': _userInputController.text.trim(),
           'topK': topK,
+          'category': _selectedCategory,
+          'keywords': allKeywords, // 합쳐진 키워드 전달
         },
       );
 
@@ -64,6 +213,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               results: _results,
               userInput: _userInputController.text.trim(),
               count: data['count'] ?? 0,
+              selectedCategory: _selectedCategory,
             ),
           ),
         );
@@ -102,13 +252,17 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
         foregroundColor: Colors.white,
         elevation: 2,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
               // 설명 텍스트
               Container(
                 padding: EdgeInsets.all(16),
@@ -145,7 +299,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      '예시:\n• "아이 키우는데 비용이 많이 들어요"\n• "임신 중에 받을 수 있는 혜택이 궁금해요"\n• "육아 휴직을 받고 싶어요"\n• "출산 후 복직이 걱정돼요"',
+                      '예시:\n• "아이 키우는데 비용이 많이 들어요"\n• "임신 중에 받을 수 있는 혜택이 궁금해요"\n• "육아 휴직을 받고 싶어요"',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -157,6 +311,129 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               ),
 
               SizedBox(height: 24),
+
+              // 프로필 정보 반영 선택
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.person, color: Colors.blue[600]),
+                        SizedBox(width: 8),
+                        Text(
+                          '프로필 정보 반영',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      '내 프로필 정보(주소지, 성별, 임신여부, 임신주차)를 정책 추천에 반영하시겠습니까?',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Radio<bool>(
+                          value: true,
+                          groupValue: _useProfileInfo,
+                          onChanged: (value) {
+                            setState(() {
+                              _useProfileInfo = value!;
+                              if (_useProfileInfo && _userProfile == null) {
+                                _loadUserProfile();
+                              }
+                            });
+                          },
+                          activeColor: Colors.blue[600],
+                        ),
+                        Text('프로필 정보 반영'),
+                        SizedBox(width: 20),
+                        Radio<bool>(
+                          value: false,
+                          groupValue: _useProfileInfo,
+                          onChanged: (value) {
+                            setState(() {
+                              _useProfileInfo = value!;
+                              // 프로필 정보 반영을 해제할 때 입력란에서 프로필 정보 제거
+                              if (!_useProfileInfo) {
+                                _removeProfileFromInput();
+                              }
+                            });
+                          },
+                          activeColor: Colors.blue[600],
+                        ),
+                        Text('반영하지 않음'),
+                      ],
+                    ),
+                    if (_profileLoading) ...[
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '프로필 정보를 불러오는 중...',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (_userProfile != null && _useProfileInfo) ...[
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.green[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '프로필 정보가 입력란에 자동으로 추가되었습니다.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.green[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 16),
 
               // 사용자 입력 필드
               TextFormField(
@@ -185,12 +462,219 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
 
               SizedBox(height: 16),
 
+              // 도움받기 토글 및 패널
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _helperOpen = !_helperOpen;
+                      // 토글 열릴 때 임시 상태 초기화
+                      if (_helperOpen) {
+                        _tempSelectedCategory = _selectedCategory;
+                        _tempSelectedKeywords = List<String>.from(_selectedKeywords);
+                      }
+                    });
+                  },
+                  icon: Icon(_helperOpen ? Icons.expand_less : Icons.support_agent, color: Colors.pink[700]),
+                  label: Text('정책 추천 상세', style: TextStyle(color: Colors.pink[700])),
+                ),
+              ),
+
+              if (_helperOpen) ...[
+                SizedBox(height: 8),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.pink[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.pink[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('서비스 분야 선택', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _tempSelectedCategory,
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('전체(필터 없음)'),
+                          ),
+                          ..._categories.map((c) => DropdownMenuItem<String>(
+                                value: c,
+                                child: Text(c),
+                              )),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _tempSelectedCategory = value;
+                            // 카테고리 바뀌면 임시 키워드 초기화
+                            _tempSelectedKeywords = [];
+                          });
+                        },
+                        decoration: InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: Icon(Icons.category, color: Colors.pink[600]),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+
+                      SizedBox(height: 12),
+                      Text('추천 키워드', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      Builder(builder: (ctx) {
+                        final hints = _categoryKeywordHints[_tempSelectedCategory] ?? const <String>[];
+                        if (hints.isEmpty) {
+                          return Text('선택된 서비스 분야의 키워드가 없습니다.');
+                        }
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: hints.map((h) {
+                            final selected = _tempSelectedKeywords.contains(h);
+                            return FilterChip(
+                              label: Text(h),
+                              selected: selected,
+                              selectedColor: Colors.pink[200],
+                              checkmarkColor: Colors.white,
+                              onSelected: (v) {
+                                setState(() {
+                                  if (v && !_tempSelectedKeywords.contains(h)) {
+                                    _tempSelectedKeywords.add(h);
+                                  } else if (!v) {
+                                    _tempSelectedKeywords.remove(h);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        );
+                      }),
+                      
+                      SizedBox(height: 12),
+                      // 사용자 정의 키워드 입력 필드 추가
+                      Text('추가 키워드 입력 (선택 사항)', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      TextFormField(
+                        controller: _customKeywordsController,
+                        decoration: InputDecoration(
+                          labelText: '키워드를 쉼표(,)로 구분하여 입력하세요',
+                          hintText: '예: 주택, 자금, 육아휴직',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: Icon(Icons.search, color: Colors.pink[600]),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+
+                      SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              // 취소: 임시 상태 폐기, 패널 닫기
+                              setState(() {
+                                _helperOpen = false;
+                                _tempSelectedCategory = _selectedCategory;
+                                _tempSelectedKeywords = List<String>.from(_selectedKeywords);
+                              });
+                            },
+                            child: Text('취소'),
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              // 적용: 임시 상태를 실제 상태로 반영
+                              setState(() {
+                                _selectedCategory = _tempSelectedCategory;
+                                _selectedKeywords = List<String>.from(_tempSelectedKeywords);
+                                _helperOpen = false;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pink[600],
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text('선택 완료'),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 8),
+              ],
+
+              // 선택된 키워드 표시 (확정 상태)
+              if (_selectedCategory != null || _selectedKeywords.isNotEmpty || _customKeywordsController.text.isNotEmpty) ...[
+                SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (_selectedCategory != null)
+                      Chip(
+                        label: Text(_selectedCategory!),
+                        backgroundColor: Colors.pink[100],
+                      ),
+                    ..._selectedKeywords.map((k) => Chip(
+                      label: Text(k),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedKeywords.remove(k);
+                        });
+                      },
+                    )),
+                    // 사용자 정의 키워드도 칩으로 표시
+                    ..._customKeywordsController.text
+                        .split(',')
+                        .map((k) => k.trim())
+                        .where((k) => k.isNotEmpty)
+                        .map((k) => Chip(
+                      label: Text(k),
+                      onDeleted: () {
+                        setState(() {
+                          // 사용자 정의 키워드 삭제 로직
+                          final currentKeywords = _customKeywordsController.text.split(',').map((ck) => ck.trim()).toList();
+                          currentKeywords.remove(k);
+                          _customKeywordsController.text = currentKeywords.join(', ');
+                        });
+                      },
+                    )),
+                    ActionChip(
+                      label: Text('초기화'),
+                      avatar: Icon(Icons.clear, size: 16),
+                      onPressed: () {
+                        setState(() {
+                          _selectedKeywords.clear();
+                          _selectedCategory = null; // 서비스분야도 초기화
+                          _customKeywordsController.clear();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+              ],
+
+              SizedBox(height: 16),
+
               // 추천 개수 입력 필드
               TextFormField(
                 controller: _topKController,
                 decoration: InputDecoration(
                   labelText: '추천 정책 개수',
-                  hintText: '5',
+                  hintText: '10',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -216,42 +700,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
 
               SizedBox(height: 24),
 
-              // 제출 버튼
-              _loading
-                  ? Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.pink[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.pink[200]!),
-                ),
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.pink[600]!),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      '저출산 완화 정책을 분석하고 있습니다...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.pink[700],
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '잠시만 기다려주세요.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  : ElevatedButton.icon(
-                onPressed: _submitRecommendation,
+              // 제출 버튼 (로딩 중 비활성화)
+              ElevatedButton.icon(
+                onPressed: _loading ? null : _submitRecommendation,
                 icon: Icon(Icons.search, size: 20),
                 label: Text(
                   '정책 추천 받기',
@@ -336,11 +787,67 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                     ],
                   ),
                 ),
-            ],
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+
+          // 상단 오버레이 로딩 카드
+          if (_loading)
+            Positioned(
+              left: 16,
+              right: 16,
+              top: 16,
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.pink[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.pink[200]!),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.pink[600]!),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        '저출산 완화 정책을 분석하고 있습니다...',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.pink[700],
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        '잠시만 기다려주세요.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _userInputController.dispose();
+    _topKController.dispose();
+    _customKeywordsController.dispose(); // 컨트롤러 폐기
+    super.dispose();
   }
 }
 
@@ -348,13 +855,15 @@ class PolicyResultPage extends StatelessWidget {
   final List<Map<String, dynamic>> results;
   final String userInput;
   final int count;
+  final String? selectedCategory;
 
   const PolicyResultPage({
-    Key? key,
+    super.key,
     required this.results,
     required this.userInput,
     required this.count,
-  }) : super(key: key);
+    this.selectedCategory,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -405,9 +914,26 @@ class PolicyResultPage extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (selectedCategory != null && selectedCategory!.isNotEmpty) ...[
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.filter_alt, size: 16, color: Colors.pink[700]),
+                        SizedBox(width: 6),
+                        Text(
+                          '적용된 필터: $selectedCategory',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.pink[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   SizedBox(height: 4),
                   Text(
-                    '추천 정책: ${count}건',
+                    '추천 정책: $count건',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

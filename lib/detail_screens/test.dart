@@ -223,11 +223,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showProfileUpdateDialog() {
     final nicknameController = TextEditingController(text: _userProfile?['별명'] ?? '');
     final addressController = TextEditingController(text: _userProfile?['주소지'] ?? '');
-
     final formKey = GlobalKey<FormState>(); // Form 위젯을 위한 GlobalKey 추가
     
     // 상태 관리를 위한 변수들
-    String selectedGender = _userProfile?['성별'] ?? '여자';
+    String selectedGender = _userProfile?['성별'] ?? '비밀';
     bool isPregnant = _userProfile?['임신여부'] ?? false;
     TextEditingController pregnancyWeekController = TextEditingController(text: _userProfile?['임신주차']?.toString() ?? '');
     DateTime? selectedBirthday = _userProfile?['생년월일'] != null
@@ -242,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return AlertDialog(
               title: const Text('프로필 수정'),
               content: SingleChildScrollView(
-                child: Form(
+                child: Form( // Form 위젯으로 감싸서 validator 사용 가능하게 함
                   key: formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -303,32 +302,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Expanded(
-                            child: RadioListTile<String>(
-                              title: const Text('여자'),
-                              value: '여자',
-                              groupValue: selectedGender,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGender = value!;
-                                });
-                              },
-                            ),
+                          // 남자
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Radio<String>(
+                                value: '남자',
+                                groupValue: selectedGender,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedGender = value!;
+                                    isPregnant = false;
+                                    pregnancyWeekController.clear();
+                                  });
+                                },
+                              ),
+                              const Text('남자'),
+                            ],
                           ),
-                          Expanded(
-                            child: RadioListTile<String>(
-                              title: const Text('남자'),
-                              value: '남자',
-                              groupValue: selectedGender,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedGender = value!;
-                                  isPregnant = false; // 성별 변경 시 임신 여부 초기화
-                                  pregnancyWeekController.clear();
-                                });
-                              },
-                            ),
+                          // 여자
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Radio<String>(
+                                value: '여자',
+                                groupValue: selectedGender,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedGender = value!;
+                                  });
+                                },
+                              ),
+                              const Text('여자'),
+                            ],
+                          ),
+                          // 비밀
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Radio<String>(
+                                value: '비밀',
+                                groupValue: selectedGender,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedGender = value!;
+                                    isPregnant = false;
+                                    pregnancyWeekController.clear();
+                                  });
+                                },
+                              ),
+                              const Text('비밀'),
+                            ],
                           ),
                         ],
                       ),
@@ -408,8 +434,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if(formKey.currentState!.validate()){
-
+                    // 유효성 검사 통과 시에만 저장 로직 실행
+                    if (formKey.currentState!.validate()) {
                       try {
                         final user = AuthService.currentUser;
                         if (user != null) {
@@ -440,7 +466,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       } catch (e) {
                         if (mounted) {
-                          debugPrint("프로필 업데이트 오류: $e");
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('프로필 업데이트 오류: $e'),

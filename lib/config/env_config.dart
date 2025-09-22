@@ -22,4 +22,8 @@ class EnvConfig {
   static String get folderName {
     return dotenv.env['FOLDER_NAME'] ?? 'health_info';
   }
+
+  static String get hcaptchaSiteKey {
+    return dotenv.env['HCAPTCHA_SITE_KEY'] ?? '';
+  }
 }

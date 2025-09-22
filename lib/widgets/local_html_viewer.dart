@@ -6,9 +6,9 @@ class LocalHtmlViewer extends StatefulWidget {
   final String assetPath; // assets/htmls/파일명.html
   
   const LocalHtmlViewer({
-    Key? key,
+    super.key,
     required this.assetPath,
-  }) : super(key: key);
+  });
 
   @override
   State<LocalHtmlViewer> createState() => _LocalHtmlViewerState();

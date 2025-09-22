@@ -3,7 +3,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class NearbyScreen extends StatefulWidget {
-  const NearbyScreen({Key? key}) : super(key: key);
+  const NearbyScreen({super.key});
 
   @override
   State<NearbyScreen> createState() => _NearbyScreenState();

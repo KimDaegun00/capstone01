@@ -10,6 +10,7 @@ import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
 import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
 import 'main_nav.dart';
+import '../services/auth_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -42,6 +43,21 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> _signOut() async {
+    try {
+      await AuthService.signOut();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('로그아웃 오류: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -53,9 +69,16 @@ class _MainScreenState extends State<MainScreen> {
         elevation: 0,
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _signOut,
+            tooltip: '로그아웃',
+          ),
+        ],
       )
           : null,
-      backgroundColor: cs.background,
+      backgroundColor: cs.surface,
       body: _getBody(),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
@@ -72,10 +95,10 @@ class MainGridMenu extends StatelessWidget {
   final void Function(int)? onWeekUpdated;
 
   const MainGridMenu({
-    Key? key,
+    super.key,
     required this.currentWeek,
     required this.onWeekUpdated,
-  }) : super(key: key);
+  });
 
   List<MenuItem> _getMenuItems(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -134,7 +157,7 @@ class MainGridMenu extends StatelessWidget {
     // 버튼 톤
     final primaryBg = isDark ? cs.primary : const Color(0xFFECE8FF);
     final primaryFg = isDark ? Colors.white : const Color(0xFF6B5CFF);
-    final secondaryBg = isDark ? cs.surfaceVariant : const Color(0xFFF4F6F8);
+    final secondaryBg = isDark ? cs.surfaceContainerHighest : const Color(0xFFF4F6F8);
     final secondaryFg = isDark ? cs.onSurface : const Color(0xFF3C3F44);
     final secondaryBorder =
     isDark ? Colors.white.withOpacity(.08) : Colors.black.withOpacity(.06);
@@ -170,7 +193,7 @@ class MainGridMenu extends StatelessWidget {
                 ),
               ),
               child: Text(
-                '${currentWeek}일',
+                '$currentWeek일',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

@@ -1,5 +1,7 @@
 // lib/detail_screens/checklist_screen.dart
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 항목 제목 → 상세 텍스트 매핑 (2~3줄 요약)
 /// pubspec/assets 수정 없이, 이 파일 하나만으로 동작합니다.
@@ -194,26 +196,161 @@ class ChecklistScreen extends StatefulWidget {
 class _ChecklistScreenState extends State<ChecklistScreen> {
   final _scrollController = ScrollController();
   late final List<GlobalKey> _sectionKeys;
-  final Map<int, Set<int>> _doneByWeek = {}; // weekIndex -> set of itemIndex
+
+  /// 완료 상태: weekIndex -> set of combined item index
+  final Map<int, Set<int>> _doneByWeek = {};
+
+  /// 사용자 추가 항목: weekIndex -> List<String>
+  final Map<int, List<String>> _customByWeek = {};
 
   int get _currentWeekIndex => _weeks.indexWhere((w) => w.isCurrent);
+
+  // persistence keys
+  static const _kCustom = 'checklist_customByWeek_v1';
+  static const _kDone = 'checklist_doneByWeek_v1';
 
   @override
   void initState() {
     super.initState();
     _sectionKeys = List.generate(_weeks.length, (_) => GlobalKey());
     for (int i = 0; i < _weeks.length; i++) {
-      _doneByWeek[i] = <int>{};
+      _ensureWeek(i);
+    }
+    _loadPersisted();
+  }
+
+  void _ensureWeek(int weekIndex) {
+    _doneByWeek.putIfAbsent(weekIndex, () => <int>{});
+    _customByWeek.putIfAbsent(weekIndex, () => <String>[]);
+  }
+
+  // ------------------ Persistence ------------------
+  Future<void> _loadPersisted() async {
+    final sp = await SharedPreferences.getInstance();
+
+    final customRaw = sp.getString(_kCustom);
+    if (customRaw != null) {
+      final Map<String, dynamic> decoded = json.decode(customRaw);
+      decoded.forEach((k, v) {
+        final idx = int.tryParse(k);
+        if (idx != null && idx >= 0 && idx < _weeks.length) {
+          _customByWeek[idx] = List<String>.from(v as List);
+        }
+      });
+    }
+
+    final doneRaw = sp.getString(_kDone);
+    if (doneRaw != null) {
+      final Map<String, dynamic> decoded = json.decode(doneRaw);
+      decoded.forEach((k, v) {
+        final idx = int.tryParse(k);
+        if (idx != null && idx >= 0 && idx < _weeks.length) {
+          _doneByWeek[idx] = (v as List).map((e) => e as int).toSet();
+        }
+      });
+    }
+
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _persist() async {
+    final sp = await SharedPreferences.getInstance();
+
+    final customMap = <String, List<String>>{};
+    _customByWeek.forEach((k, v) => customMap['$k'] = v);
+
+    final doneMap = <String, List<int>>{};
+    _doneByWeek.forEach((k, v) => doneMap['$k'] = v.toList());
+
+    await sp.setString(_kCustom, json.encode(customMap));
+    await sp.setString(_kDone, json.encode(doneMap));
+  }
+  // --------------------------------------------------
+
+  List<String> _combinedItems(int weekIndex) {
+    _ensureWeek(weekIndex);
+    final custom = _customByWeek[weekIndex]!;
+    return [..._weeks[weekIndex].items, ...custom];
+  }
+
+  void _toggleDone(int weekIndex, int combinedIndex) {
+    _ensureWeek(weekIndex);
+    final set = _doneByWeek[weekIndex]!;
+    set.contains(combinedIndex) ? set.remove(combinedIndex) : set.add(combinedIndex);
+    setState(() {});
+    _persist();
+  }
+
+  int _doneCount(int weekIndex) {
+    _ensureWeek(weekIndex);
+    return _doneByWeek[weekIndex]!.length;
+  }
+
+  Future<void> _addCustomItem(int weekIndex) async {
+    _ensureWeek(weekIndex);
+    final controller = TextEditingController();
+    final text = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('이 주차에 항목 추가', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: '예) 정밀 초음파 검사 / 간기능 검사',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                  child: const Text('추가'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (text != null && text.isNotEmpty) {
+      setState(() => _customByWeek[weekIndex]!.add(text));
+      _persist();
     }
   }
 
-  void _toggleDone(int weekIndex, int itemIndex) {
-    final set = _doneByWeek[weekIndex]!;
-    set.contains(itemIndex) ? set.remove(itemIndex) : set.add(itemIndex);
-    setState(() {});
+  void _deleteCustomItem(int weekIndex, int combinedIndex) {
+    _ensureWeek(weekIndex);
+    final systemLen = _weeks[weekIndex].items.length;
+    final localIndex = combinedIndex - systemLen; // 사용자 리스트 내 인덱스
+    if (localIndex >= 0 && localIndex < _customByWeek[weekIndex]!.length) {
+      setState(() {
+        _customByWeek[weekIndex]!.removeAt(localIndex);
+        // 완료셋 인덱스 보정
+        final done = _doneByWeek[weekIndex]!;
+        done.remove(combinedIndex);
+        final updated = <int>{};
+        for (final idx in done) {
+          updated.add(idx > combinedIndex ? idx - 1 : idx);
+        }
+        _doneByWeek[weekIndex] = updated;
+      });
+      _persist();
+    }
   }
-
-  int _doneCount(int weekIndex) => _doneByWeek[weekIndex]!.length;
 
   void _scrollToCurrent() {
     final idx = _currentWeekIndex;
@@ -247,15 +384,23 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         itemCount: _weeks.length,
         separatorBuilder: (_, __) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
+          _ensureWeek(index); // 방어
+
           final data = _weeks[index];
+          final combined = _combinedItems(index);
           return _WeekSectionTile(
             key: _sectionKeys[index],
             data: data,
             isFirst: index == 0,
             isLast: index == _weeks.length - 1,
             doneCount: _doneCount(index),
+            totalCount: combined.length,
+            onAddCustom: () => _addCustomItem(index),
             onToggle: (itemIndex) => _toggleDone(index, itemIndex),
             isItemDone: (itemIndex) => _doneByWeek[index]!.contains(itemIndex),
+            combinedItems: combined,
+            systemCount: data.items.length,
+            onDeleteCustom: (combinedIndex) => _deleteCustomItem(index, combinedIndex),
           );
         },
       ),
@@ -287,7 +432,7 @@ class WeekSectionData {
   });
 }
 
-/// 주차별 더미 데이터 (1~40주 범위를 구간으로 묶어 표현)
+/// 주차별 더미 데이터
 const List<WeekSectionData> _weeks = [
   WeekSectionData(
     leftTitle: '1~3주',
@@ -437,8 +582,13 @@ class _WeekSectionTile extends StatelessWidget {
     required this.isFirst,
     required this.isLast,
     required this.doneCount,
+    required this.totalCount,
+    required this.onAddCustom,
     required this.onToggle,
     required this.isItemDone,
+    required this.combinedItems,
+    required this.systemCount,
+    required this.onDeleteCustom,
   });
 
   final WeekSectionData data;
@@ -446,23 +596,30 @@ class _WeekSectionTile extends StatelessWidget {
   final bool isLast;
 
   final int doneCount;
+  final int totalCount;
+
+  final VoidCallback onAddCustom;
   final void Function(int itemIndex) onToggle;
   final bool Function(int itemIndex) isItemDone;
+
+  /// 시스템 + 사용자 합친 리스트와 시스템 항목 개수
+  final List<String> combinedItems;
+  final int systemCount;
+
+  /// 사용자 항목 삭제 콜백(합쳐진 인덱스 기준)
+  final void Function(int combinedIndex) onDeleteCustom;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final bg =
-    data.isCurrent ? cs.secondaryContainer.withOpacity(0.32) : cs.surface;
-    final borderColor =
-    Theme.of(context).dividerColor.withOpacity(data.isCurrent ? 0.0 : 0.6);
+    final bg = data.isCurrent ? cs.secondaryContainer.withOpacity(0.32) : cs.surface;
+    final borderColor = Theme.of(context).dividerColor.withOpacity(data.isCurrent ? 0.0 : 0.6);
 
     final timelineActive = cs.primary;
     final timelineInactive = cs.onSurface.withOpacity(0.18);
 
-    final total = data.items.length;
-    final progress = total == 0 ? 0.0 : (doneCount / total);
+    final progress = totalCount == 0 ? 0.0 : (doneCount / totalCount);
 
     // IntrinsicHeight: 줄바꿈 시 카드 높이에 맞춰 타임라인도 자동 확장
     return IntrinsicHeight(
@@ -513,9 +670,7 @@ class _WeekSectionTile extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: Container(
                       width: 2,
-                      color: data.isCurrent
-                          ? timelineActive.withOpacity(0.6)
-                          : timelineInactive,
+                      color: data.isCurrent ? timelineActive.withOpacity(0.6) : timelineInactive,
                     ),
                   ),
                 ),
@@ -525,8 +680,7 @@ class _WeekSectionTile extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color:
-                      data.isCurrent ? timelineActive : timelineInactive,
+                      color: data.isCurrent ? timelineActive : timelineInactive,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -554,19 +708,14 @@ class _WeekSectionTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Column(
                 children: [
-                  // 날짜 범위 + 진행률
+                  // 날짜 범위 + 진행률 + 주차별 추가 버튼
                   Padding(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                     child: Column(
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.calendar_today_rounded,
-                              size: 16,
-                              color: cs.onSurface.withOpacity(0.6),
-                            ),
+                            Icon(Icons.calendar_today_rounded, size: 16, color: cs.onSurface.withOpacity(0.6)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -585,14 +734,13 @@ class _WeekSectionTile extends StatelessWidget {
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(99),
                                   color: cs.primary.withOpacity(0.08),
                                 ),
                                 child: Text(
-                                  '완료 $doneCount/$total',
+                                  '완료 $doneCount/$totalCount',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: cs.primary,
@@ -600,6 +748,12 @@ class _WeekSectionTile extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              tooltip: '이 주차에 항목 추가',
+                              onPressed: onAddCustom,
+                              icon: const Icon(Icons.add_circle_outline),
                             ),
                           ],
                         ),
@@ -610,8 +764,7 @@ class _WeekSectionTile extends StatelessWidget {
                             value: progress,
                             minHeight: 6,
                             backgroundColor: cs.onSurface.withOpacity(0.08),
-                            valueColor:
-                            AlwaysStoppedAnimation<Color>(cs.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                           ),
                         ),
                       ],
@@ -620,22 +773,30 @@ class _WeekSectionTile extends StatelessWidget {
                   const SizedBox(height: 6),
                   const Divider(height: 1),
 
-                  // 항목 리스트
+                  // 항목 리스트(시스템 + 사용자)
                   ...List.generate(
-                    data.items.length,
-                        (i) => _CheckRow(
-                      index: i,
-                      title: data.items[i],
-                      done: isItemDone(i),
-                      onTap: () => onToggle(i),
-                      onInfoTap: () => _showDetailBottomSheet(
-                        context,
-                        data.items[i],
-                        _detailsByTitle[data.items[i]] ??
-                            '해당 항목의 요약 정보는 준비 중입니다.\n'
-                                '필요시 의료진과 상담을 권장드립니다.',
-                      ),
-                    ),
+                    combinedItems.length,
+                        (i) {
+                      final title = combinedItems[i];
+                      final isUser = i >= systemCount;
+                      return _CheckRow(
+                        index: i,
+                        title: title,
+                        done: isItemDone(i),
+                        isUserItem: isUser,
+                        onTap: () => onToggle(i),
+                        // 사용자 항목은 상세 없음 → onInfoTap 전달하지 않음
+                        onInfoTap: isUser
+                            ? null
+                            : () => _showDetailBottomSheet(
+                          context,
+                          title,
+                          _detailsByTitle[title] ??
+                              '해당 항목의 요약 정보는 준비 중입니다.\n필요 시 담당 의료진과 상담을 권장드려요.',
+                        ),
+                        onDelete: isUser ? () => onDeleteCustom(i) : null,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -653,14 +814,18 @@ class _CheckRow extends StatelessWidget {
     required this.title,
     required this.done,
     required this.onTap,
-    required this.onInfoTap,
+    this.onInfoTap,
+    this.isUserItem = false,
+    this.onDelete,
   });
 
   final int index;
   final String title;
   final bool done;
+  final bool isUserItem;
   final VoidCallback onTap;
-  final VoidCallback onInfoTap;
+  final VoidCallback? onInfoTap; // 사용자 항목은 null
+  final VoidCallback? onDelete;  // 사용자 항목에서만 사용
 
   @override
   Widget build(BuildContext context) {
@@ -668,9 +833,15 @@ class _CheckRow extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      onLongPress: () => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('\'$title\' 상세는 준비 중입니다')),
-      ),
+      onLongPress: () {
+        if (onInfoTap != null) {
+          onInfoTap!();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('직접 추가한 항목입니다')),
+          );
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         child: Row(
@@ -687,32 +858,49 @@ class _CheckRow extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // 제목 (자동 줄바꿈 허용)
+            // 제목
             Expanded(
-              child: Text(
-                title,
-                softWrap: true,
-                maxLines: null,
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.25,
-                  color: cs.onSurface,
-                  decoration: done ? TextDecoration.lineThrough : null,
-                  decorationColor: cs.onSurface.withOpacity(0.35),
-                ),
+              child: Row(
+                children: [
+                  if (isUserItem)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Icon(Icons.person, size: 16, color: cs.onSurface.withOpacity(0.65)),
+                    ),
+                  Expanded(
+                    child: Text(
+                      title,
+                      softWrap: true,
+                      maxLines: null,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        fontSize: 16,
+                        height: 1.25,
+                        color: cs.onSurface,
+                        decoration: done ? TextDecoration.lineThrough : null,
+                        decorationColor: cs.onSurface.withOpacity(0.35),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
             const SizedBox(width: 8),
 
-            // 상세 보기 아이콘
-            IconButton(
-              onPressed: onInfoTap,
-              icon: Icon(Icons.chevron_right,
-                  color: cs.onSurface.withOpacity(0.55)),
-              tooltip: '상세 보기',
-            ),
+            // 트레일링: 시스템 항목은 >, 사용자 항목은 휴지통(중립색)
+            if (!isUserItem)
+              IconButton(
+                onPressed: onInfoTap,
+                icon: Icon(Icons.chevron_right, color: cs.onSurface.withOpacity(0.55)),
+                tooltip: '상세 보기',
+              )
+            else
+              IconButton(
+                onPressed: onDelete,
+                icon: Icon(Icons.delete_outline, color: cs.onSurface.withOpacity(0.55)),
+                tooltip: '삭제',
+              ),
           ],
         ),
       ),
@@ -720,7 +908,7 @@ class _CheckRow extends StatelessWidget {
   }
 }
 
-/// 상세 바텀시트: 같은 파일 안에서 처리
+/// 상세 바텀시트
 void _showDetailBottomSheet(
     BuildContext context,
     String title,
@@ -756,8 +944,7 @@ void _showDetailBottomSheet(
                   ),
                 ),
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
                       Expanded(
@@ -784,8 +971,7 @@ void _showDetailBottomSheet(
                 Expanded(
                   child: SingleChildScrollView(
                     controller: controller,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     child: Text(
                       body,
                       style: TextStyle(
@@ -799,8 +985,7 @@ void _showDetailBottomSheet(
 
                 // 디스클레이머
                 Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
                     '※ 본 앱의 정보는 교육 목적이며, 개인의 의학적 판단은 담당 의료진과 상의하세요.',
                     style: TextStyle(

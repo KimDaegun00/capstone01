@@ -10,11 +10,6 @@
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
 
-        <!-- (선택) Google Maps API 키, 현재 미사용이라면 생략 가능 -->
-        <!-- <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY" /> -->
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,7 +23,19 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
-
+            <intent-filter android:autoVerify="true"> <!-- 스킴 딥링크 -->
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="localhost:3000" android:pathPrefix="/reset-password" />
+            </intent-filter>
+            <intent-filter><!-- 앱 딥링크 -->
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="www.example.net" />
+                <data android:scheme="http"/> 
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

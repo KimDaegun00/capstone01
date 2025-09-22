@@ -30,6 +30,22 @@ class CaptchaService {
             NavigationDelegate(
               onWebResourceError: (WebResourceError error) {
                 debugPrint('hCaptcha WebView 에러: ${error.description}');
+                debugPrint('에러 코드: ${error.errorCode}');
+                debugPrint('에러 타입: ${error.errorType}');
+                
+                // 네트워크 에러인 경우 사용자에게 알림
+                if (error.errorCode == -2 || error.description.contains('ERR_NAME_NOT_RESOLVED')) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('네트워크 연결을 확인해주세요.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              onNavigationRequest: (NavigationRequest request) {
+                debugPrint('hCaptcha 네비게이션 요청: ${request.url}');
+                return NavigationDecision.navigate;
               },
             ),
           )

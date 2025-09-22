@@ -19,6 +19,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserProfile();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _loadUserProfile() async {
     try {
       final user = AuthService.currentUser;
@@ -28,19 +33,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if(profile == null) {
           debugPrint("profile is null");
         }
-        setState(() {
-          _userProfile = profile;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _userProfile = profile;
+            _isLoading = false;
+          });
+        }
       }
       else{
         debugPrint("유저가 없음");
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       debugPrint(e.toString());
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -61,18 +61,22 @@ class _HealthInfoListState extends State<HealthInfoList> {
         });
       }
 
-      setState(() {
-        healthInfoList = tempList;
-        filteredList = List.from(healthInfoList);
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          healthInfoList = tempList;
+          filteredList = List.from(healthInfoList);
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('목록 로드 실패: $e')),
-      );
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('목록 로드 실패: $e')),
+        );
+      }
     }
   }
 

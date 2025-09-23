@@ -49,9 +49,11 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
   Future<void> _loadUserProfile() async {
     if (_profileLoading) return;
     
-    setState(() {
-      _profileLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _profileLoading = true;
+      });
+    }
 
       try {
         final user = AuthService.currentUser;
@@ -62,31 +64,39 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
           
           if(profile == null) {
             debugPrint("profile is null");
-            setState(() {
-              _errorMessage = '프로필 정보를 찾을 수 없습니다.';
-              _profileLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _errorMessage = '프로필 정보를 찾을 수 없습니다.';
+                _profileLoading = false;
+              });
+            }
             return;
           }
 
-          setState(() {
-            _userProfile = profile;
-            _profileLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _userProfile = profile;
+              _profileLoading = false;
+            });
+          }
 
           // 프로필 정보를 사용자 입력에 반영
           _applyProfileToInput();
         } else {
+          if (mounted) {
+            setState(() {
+              _errorMessage = '로그인이 필요합니다.';
+              _profileLoading = false;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
           setState(() {
-            _errorMessage = '로그인이 필요합니다.';
+            _errorMessage = '프로필 정보를 가져오는데 실패했습니다: $e';
             _profileLoading = false;
           });
         }
-      } catch (e) {
-        setState(() {
-          _errorMessage = '프로필 정보를 가져오는데 실패했습니다: $e';
-          _profileLoading = false;
-        });
         print('❌ 프로필 로딩 오류: $e');
         print('❌ 오류 타입: ${e.runtimeType}');
         print('❌ 스택 트레이스: ${e.toString()}');
@@ -156,12 +166,14 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
   Future<void> _submitRecommendation() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _loading = true;
-      _errorMessage = '';
-      _successMessage = '';
-      _results = [];
-    });
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _errorMessage = '';
+        _successMessage = '';
+        _results = [];
+      });
+    }
 
     try {
       final topK = int.tryParse(_topKController.text) ?? 10;
@@ -197,26 +209,30 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
       print('📊 응답 데이터 타입: ${data.runtimeType}');
 
       if (data != null && data['success'] == true) {
-        setState(() {
-          _results = List<Map<String, dynamic>>.from(data['results'] ?? []);
-          _successMessage = '저출산 완화 정책 추천이 완료되었습니다!';
-        });
+        if (mounted) {
+          setState(() {
+            _results = List<Map<String, dynamic>>.from(data['results'] ?? []);
+            _successMessage = '저출산 완화 정책 추천이 완료되었습니다!';
+          });
+        }
 
         print('📊 추천 결과: ${_results.length}개 정책');
         print('📊 결과 상세: $_results');
 
         // 결과 페이지로 이동
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PolicyResultPage(
-              results: _results,
-              userInput: _userInputController.text.trim(),
-              count: data['count'] ?? 0,
-              selectedCategory: _selectedCategory,
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PolicyResultPage(
+                results: _results,
+                userInput: _userInputController.text.trim(),
+                count: data['count'] ?? 0,
+                selectedCategory: _selectedCategory,
+              ),
             ),
-          ),
-        );
+          );
+        }
       } else {
         final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
         print('❌ 응답 데이터 분석:');
@@ -226,20 +242,26 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
         print('  - results: ${data?['results']}');
         print('  - count: ${data?['count']}');
 
-        setState(() {
-          _errorMessage = errorMsg;
-        });
+        if (mounted) {
+          setState(() {
+            _errorMessage = errorMsg;
+          });
+        }
         print('❌ Edge Function 오류: $errorMsg');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = '네트워크 오류: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '네트워크 오류: $e';
+        });
+      }
       print('❌ 정책 추천 오류: $e');
     } finally {
-      setState(() {
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -354,7 +376,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           onChanged: (value) {
                             setState(() {
                               _useProfileInfo = value!;
-                              if (_useProfileInfo && _userProfile == null) {
+                              if (_useProfileInfo) {
                                 _loadUserProfile();
                               }
                             });

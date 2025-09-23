@@ -29,10 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       // 1) hCaptcha 토큰 요청
@@ -55,9 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
         // 로그인 성공 시 라우터(StreamBuilder)가 화면 전환을 처리하므로 수동 내비게이션 제거
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = AuthService.getErrorMessage(e);
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = AuthService.getErrorMessage(e);
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {

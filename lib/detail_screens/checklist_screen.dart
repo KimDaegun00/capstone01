@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:capstone/services/auth_service.dart'; // ✅ 프로필(서버)에서 임신주차 로드
 
 /// 항목 제목 → 상세 텍스트 매핑 (2~3줄 요약)
 /// pubspec/assets 수정 없이, 이 파일 하나만으로 동작합니다.
@@ -203,6 +204,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   /// 사용자 추가 항목: weekIndex -> List<String>
   final Map<int, List<String>> _customByWeek = {};
 
+  /// 서버에서 가져온 임신 주차
+  int? _pregnancyWeek;
+
+  /// 화면에 실제로 그릴 주차 데이터(현재 주차 표시 포함)
+  late List<WeekSectionData> _weeks;
+
   int get _currentWeekIndex => _weeks.indexWhere((w) => w.isCurrent);
 
   // persistence keys
@@ -212,17 +219,76 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   @override
   void initState() {
     super.initState();
+    _weeks = List.of(_weeksMaster); // 초기값
     _sectionKeys = List.generate(_weeks.length, (_) => GlobalKey());
     for (int i = 0; i < _weeks.length; i++) {
       _ensureWeek(i);
     }
     _loadPersisted();
+    _loadPregnancyWeekAndApply(); // ✅ 서버에서 임신주차 로드 후 적용
   }
 
   void _ensureWeek(int weekIndex) {
     _doneByWeek.putIfAbsent(weekIndex, () => <int>{});
     _customByWeek.putIfAbsent(weekIndex, () => <String>[]);
   }
+
+  // ------------------ 임신주차: 서버에서 로드 & 적용 ------------------
+  Future<void> _loadPregnancyWeekAndApply() async {
+    try {
+      final user = AuthService.currentUser;
+      if (user == null) return;
+
+      final profile = await AuthService.getUserProfile(user.id);
+      final v = profile?['임신주차'];
+
+      int? week;
+      if (v is int) {
+        week = v;
+      } else if (v is String) {
+        week = int.tryParse(v);
+      }
+
+      if (!mounted) return;
+
+      _pregnancyWeek = week;
+      _applyPregnancyWeekToSections();
+      // 자동 스크롤
+      Future.delayed(const Duration(milliseconds: 300), _scrollToCurrent);
+    } catch (e) {
+      debugPrint('임신주차 로드 실패: $e');
+    }
+  }
+
+  void _applyPregnancyWeekToSections() {
+    final idx = _indexForWeek(_pregnancyWeek);
+    setState(() {
+      _weeks = List.generate(_weeksMaster.length, (i) {
+        final base = _weeksMaster[i];
+        return base.copyWith(isCurrent: i == idx);
+      });
+    });
+  }
+
+  /// 겹치는 구간 우선순위 고려:
+  /// 1~3, 4~6, 7~9, 10~13, 14~18, 19~22, 23~26, [27~29 우선], 24~28, 30~33, 34~36, 37~40
+  int _indexForWeek(int? w) {
+    if (w == null) return -1;
+    if (w >= 1 && w <= 3) return 0;
+    if (w >= 4 && w <= 6) return 1;
+    if (w >= 7 && w <= 9) return 2;
+    if (w >= 10 && w <= 13) return 3;
+    if (w >= 14 && w <= 18) return 4;
+    if (w >= 19 && w <= 22) return 5;
+    if (w >= 23 && w <= 26) return 6;
+    if (w >= 27 && w <= 29) return 8; // 27~29 우선
+    if (w >= 24 && w <= 28) return 7;
+    if (w >= 30 && w <= 33) return 9;
+    if (w >= 34 && w <= 36) return 10;
+    if (w >= 37 && w <= 40) return 11;
+    return -1;
+  }
+  // --------------------------------------------------
 
   // ------------------ Persistence ------------------
   Future<void> _loadPersisted() async {
@@ -376,7 +442,37 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
         elevation: 0,
+        actions: [
+          if (_pregnancyWeek != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: cs.primary.withOpacity(0.35)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.pregnant_woman, size: 16, color: cs.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '임신 ${_pregnancyWeek}주차',
+                      style: TextStyle(
+                        color: cs.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
+
+      // 본문 리스트
       body: ListView.separated(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -404,13 +500,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
           );
         },
       ),
-      floatingActionButton: _currentWeekIndex >= 0
-          ? FloatingActionButton.extended(
-        onPressed: _scrollToCurrent,
-        icon: const Icon(Icons.my_location),
-        label: const Text('현재 주로'),
-      )
-          : null,
+
+      // ✅ FAB 제거(오른쪽 아래 "임신 n주차로" 버튼 삭제)
+      floatingActionButton: null,
     );
   }
 }
@@ -419,7 +511,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 class WeekSectionData {
   final String leftTitle; // e.g. "4~6주"
   final String leftSubTitle; // e.g. "임신확인 검사"
-  final String range; // e.g. "2025-03-22 ~ 2025-04-11"
+  final String range; // e.g. "2025-03-22 ~ 2025-04-11" (현재는 표시 안 함)
   final List<String> items;
   final bool isCurrent;
 
@@ -430,10 +522,26 @@ class WeekSectionData {
     required this.items,
     this.isCurrent = false,
   });
+
+  WeekSectionData copyWith({
+    String? leftTitle,
+    String? leftSubTitle,
+    String? range,
+    List<String>? items,
+    bool? isCurrent,
+  }) {
+    return WeekSectionData(
+      leftTitle: leftTitle ?? this.leftTitle,
+      leftSubTitle: leftSubTitle ?? this.leftSubTitle,
+      range: range ?? this.range,
+      items: items ?? this.items,
+      isCurrent: isCurrent ?? this.isCurrent,
+    );
+  }
 }
 
-/// 주차별 더미 데이터
-const List<WeekSectionData> _weeks = [
+/// 주차별 기본 데이터(현재 주차 표시 전)
+const List<WeekSectionData> _weeksMaster = [
   WeekSectionData(
     leftTitle: '1~3주',
     leftSubTitle: '임신 준비·초기',
@@ -451,7 +559,6 @@ const List<WeekSectionData> _weeks = [
     leftTitle: '4~6주',
     leftSubTitle: '임신확인 검사',
     range: '예: 2025-03-22 ~ 2025-04-11',
-    isCurrent: true, // 데모용
     items: [
       '초음파 검사',
       '경부암 검사',
@@ -708,66 +815,50 @@ class _WeekSectionTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Column(
                 children: [
-                  // 날짜 범위 + 진행률 + 주차별 추가 버튼
+                  // ✅ 날짜 텍스트 제거: 진행률 + 추가 버튼만 남김
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                    child: Column(
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today_rounded, size: 16, color: cs.onSurface.withOpacity(0.6)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                data.range,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: false,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: cs.onSurface.withOpacity(0.7),
-                                ),
+                        // 진행률 칩
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(99),
+                              color: cs.primary.withOpacity(0.08),
+                            ),
+                            child: Text(
+                              '완료 $doneCount/$totalCount',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: cs.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(99),
-                                  color: cs.primary.withOpacity(0.08),
-                                ),
-                                child: Text(
-                                  '완료 $doneCount/$totalCount',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: cs.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            IconButton(
-                              tooltip: '이 주차에 항목 추가',
-                              onPressed: onAddCustom,
-                              icon: const Icon(Icons.add_circle_outline),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 6,
-                            backgroundColor: cs.onSurface.withOpacity(0.08),
-                            valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                           ),
                         ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: '이 주차에 항목 추가',
+                          onPressed: onAddCustom,
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 6,
+                        backgroundColor: cs.onSurface.withOpacity(0.08),
+                        valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -785,7 +876,6 @@ class _WeekSectionTile extends StatelessWidget {
                         done: isItemDone(i),
                         isUserItem: isUser,
                         onTap: () => onToggle(i),
-                        // 사용자 항목은 상세 없음 → onInfoTap 전달하지 않음
                         onInfoTap: isUser
                             ? null
                             : () => _showDetailBottomSheet(
@@ -838,7 +928,7 @@ class _CheckRow extends StatelessWidget {
           onInfoTap!();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('직접 추가한 항목입니다')),
+            const SnackBar(content: Text('직접 추가한 항목입니다')),
           );
         }
       },

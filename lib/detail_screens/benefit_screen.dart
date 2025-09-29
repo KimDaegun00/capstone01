@@ -59,7 +59,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
         final user = AuthService.currentUser;
         if (user != null) {
           debugPrint("유저가 있음: ${user.id}");
-          final profile = await AuthService.getUserProfile(user.id);
+          final profile = await AuthService.getUserProfileWithWeeks(user.id);
           debugPrint("프로필 데이터: $profile");
           
           if(profile == null) {

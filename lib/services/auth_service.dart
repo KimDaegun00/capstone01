@@ -84,6 +84,20 @@ class AuthService {
       rethrow;
     }
   }
+
+  static Future<Map<String, dynamic>?> getUserProfileWithWeeks(String userId) async {
+    try{
+      final row = await _supabase
+          .schema('capstone_schema')
+          .from('유저_with_weeks')
+          .select()                 // 필요한 컬럼만 선택해도 됨: .select('id, 별명, 임신주차_계산, ...')
+          .eq('id', userId)
+          .single();
+      return row;
+    } catch(e){
+      rethrow;
+    }
+  }
   
   // 유저 프로필 업데이트 (capstone_schema.유저 테이블에서)
   static Future<void> updateUserProfile({

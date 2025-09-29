@@ -239,7 +239,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       final user = AuthService.currentUser;
       if (user == null) return;
 
-      final profile = await AuthService.getUserProfile(user.id);
+      final profile = await AuthService.getUserProfileWithWeeks(user.id);
       final v = profile?['임신주차'];
 
       int? week;
@@ -254,7 +254,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       _pregnancyWeek = week;
       _applyPregnancyWeekToSections();
       // 자동 스크롤
-      Future.delayed(const Duration(milliseconds: 300), _scrollToCurrent);
+      Future.delayed(const Duration(milliseconds: 150), _scrollToCurrent);
     } catch (e) {
       debugPrint('임신주차 로드 실패: $e');
     }

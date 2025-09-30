@@ -33,10 +33,12 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       // 1) hCaptcha 토큰 요청
@@ -71,9 +73,11 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = AuthService.getErrorMessage(e);
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = AuthService.getErrorMessage(e);
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {

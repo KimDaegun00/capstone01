@@ -34,10 +34,12 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       await Supabase.instance.client.auth.verifyOTP(
@@ -52,15 +54,19 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
         )
       );
 
-      setState(() {
-        _isSuccess = true;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSuccess = true;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = '비밀번호 변경 실패: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '비밀번호 변경 실패: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 

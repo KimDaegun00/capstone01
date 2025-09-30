@@ -19,28 +19,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserProfile();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _loadUserProfile() async {
     try {
       final user = AuthService.currentUser;
       if (user != null) {
         debugPrint("유저가 있음");
-        final profile = await AuthService.getUserProfile(user.id);
+        final profile = await AuthService.getUserProfileWithWeeks(user.id);
         if(profile == null) {
           debugPrint("profile is null");
         }
-        setState(() {
-          _userProfile = profile;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _userProfile = profile;
+            _isLoading = false;
+          });
+        }
       }
       else{
         debugPrint("유저가 없음");
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       debugPrint(e.toString());
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -106,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                _buildInfoRow('🏠 주소지', _userProfile?['주소지'] ?? '미설정'),
                                _buildInfoRow('⚧ 성별', _userProfile?['성별'] ?? '미설정'),
                                _buildInfoRow('🤰 임신여부', _userProfile?['임신여부'] == true ? '예' : '아니오'),
+                               _buildInfoRow('📅 임신시작일', _formatDateFromString(_userProfile?['임신시작일'])),
                                _buildInfoRow('📅 임신주차', _userProfile?['임신주차'] != null ? '${_userProfile?['임신주차']}주차' : '미설정'),
                              ],
                            )
@@ -229,7 +244,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // 상태 관리를 위한 변수들
     String selectedGender = _userProfile?['성별'] ?? '여자';
     bool isPregnant = _userProfile?['임신여부'] ?? false;
-    TextEditingController pregnancyWeekController = TextEditingController(text: _userProfile?['임신주차']?.toString() ?? '');
+    DateTime? selectedPregnancyStartDate = _userProfile?['임신시작일'] != null
+        ? (_userProfile!['임신시작일'] is String ? DateTime.tryParse(_userProfile!['임신시작일']) : _userProfile!['임신시작일'])
+        : null;
     DateTime? selectedBirthday = _userProfile?['생년월일'] != null
         ? (_userProfile!['생년월일'] is String ? DateTime.tryParse(_userProfile!['생년월일']) : _userProfile!['생년월일'])
         : null;
@@ -325,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 setState(() {
                                   selectedGender = value!;
                                   isPregnant = false; // 성별 변경 시 임신 여부 초기화
-                                  pregnancyWeekController.clear();
+                                  selectedPregnancyStartDate = null;
                                 });
                               },
                             ),
@@ -363,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ? (value) {
                                     setState(() {
                                       isPregnant = value!;
-                                      pregnancyWeekController.clear(); // 임신 안했으면 주차 초기화
+                                      selectedPregnancyStartDate = null; // 임신 안했으면 시작일 초기화
                                     });
                                   }
                                   : null,
@@ -372,30 +389,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // 임신주차 입력 필드 (임신여부가 '예'일 때만 활성화)
-                      TextFormField(
-                        controller: pregnancyWeekController,
-                        keyboardType: TextInputType.number,
-                        enabled: isPregnant,
-                        decoration: InputDecoration(
-                          labelText: '임신주차 (숫자만)',
-                          border: const OutlineInputBorder(),
-                          filled: true,
-                          fillColor: isPregnant ? Colors.white : Colors.grey[200],
+                      // 임신 시작일 캘린더 선택 (임신여부가 '예'일 때만 활성화)
+                      const Text(
+                        '임신 시작일',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: isPregnant
+                            ? () async {
+                                final pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: selectedPregnancyStartDate ?? DateTime.now(),
+                                  firstDate: DateTime(1950),
+                                  lastDate: DateTime.now(),
+                                );
+                                if (pickedDate != null) {
+                                  setState(() {
+                                    selectedPregnancyStartDate = pickedDate;
+                                  });
+                                }
+                              }
+                            : null,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            suffixIcon: const Icon(Icons.calendar_today),
+                            enabled: isPregnant,
+                          ),
+                          child: Text(
+                            isPregnant
+                                ? (selectedPregnancyStartDate != null
+                                    ? DateFormat('yyyy-MM-dd').format(selectedPregnancyStartDate!)
+                                    : '날짜를 선택하세요')
+                                : '임신 여부가 "예"일 때 선택 가능합니다',
+                            style: TextStyle(
+                              color: isPregnant
+                                  ? (selectedPregnancyStartDate != null ? Colors.black : Colors.grey[700])
+                                  : Colors.grey[500],
+                            ),
+                          ),
                         ),
-                        // 임신주차 유효성 검사 추가
-                        validator: (value) {
-                          if (isPregnant && (value == null || value.isEmpty)) {
-                            return '임신 주차를 입력해주세요.';
-                          }
-                          if (value != null && value.isNotEmpty) {
-                            final week = int.tryParse(value);
-                            if (week == null || week < 0 || week > 42) {
-                              return '0에서 42 사이의 숫자를 입력해주세요.';
-                            }
-                          }
-                          return null;
-                        },
                       ),
                     ],
                   ),
@@ -409,6 +443,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     if(formKey.currentState!.validate()){
+                      if (isPregnant && selectedPregnancyStartDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('임신 시작일을 선택해주세요.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
 
                       try {
                         final user = AuthService.currentUser;
@@ -419,7 +462,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             '주소지': addressController.text.trim(),
                             '성별': selectedGender,
                             '임신여부': isPregnant,
-                            '임신주차': int.tryParse(pregnancyWeekController.text.trim()),
+                            '임신시작일': selectedPregnancyStartDate?.toIso8601String(),
                           };
                           
                           await AuthService.updateUserProfile(

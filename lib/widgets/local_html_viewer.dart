@@ -54,7 +54,7 @@ class _LocalHtmlViewerState extends State<LocalHtmlViewer> {
             html, body {
               overflow-x: hidden;
               margin: 0;
-              padding: 0;
+              padding: 0 12px;
               font-family: sans-serif;
             }
             /* 이미지와 표 크기 화면에 맞춤 */

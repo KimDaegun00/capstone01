@@ -17,9 +17,9 @@ class BottomNavBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor =
-    isDark ? const Color(0xFF1E1E1E) : const Color(0xFFFDEAE8);
+    isDark ? const Color(0xFF3A2F2F) : const Color(0xFFFFF3E8); // 살짝 더 따뜻한 아이보리
     final indicatorColor =
-    isDark ? Colors.teal.shade700 : const Color(0xFFFCDADA);
+    isDark ? const Color(0xFFC49A84) : const Color(0xFFFFCDB2); // 좀 더 진한 살구핑크
     final iconColor = isDark ? Colors.white : Colors.black;
 
     return ValueListenableBuilder<bool>(

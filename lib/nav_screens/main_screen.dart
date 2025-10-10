@@ -62,6 +62,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
+
+
     return Scaffold(
       appBar: _selectedIndex == 0
           ? AppBar(
@@ -87,9 +89,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
 /* ───────────────────────── MainGridMenu ───────────────────────── */
-
 class MainGridMenu extends StatelessWidget {
   final int? currentWeek;
   final void Function(int)? onWeekUpdated;
@@ -103,44 +103,44 @@ class MainGridMenu extends StatelessWidget {
   List<MenuItem> _getMenuItems(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 정책 추천: 원래 쓰던 연분홍/코랄 계열로 복구
+    // 정책 추천: 연분홍/코랄 계열
     final policy = isDark
         ? const [Color(0xFFB04040), Color(0xFF802020)]
         : const [Color(0xFFFF8C8C), Color(0xFFFFB6B6)];
 
-    // 나머지는 톤온톤 트렌디 팔레트 유지
     final nearby = isDark
         ? const [Color(0xFFB1722E), Color(0xFFD09456)]
         : const [Color(0xFFFFB86B), Color(0xFFFFD29D)];
+
     final checklist = isDark
         ? const [Color(0xFF2F8F8A), Color(0xFF4FB3AB)]
         : const [Color(0xFF69D6CC), Color(0xFF9BE6DF)];
+
     final health = isDark
         ? const [Color(0xFF2C6E49), Color(0xFF3E8B61)]
         : const [Color(0xFF86D4A4), Color(0xFFC2E9D1)];
 
     return [
-      // ⚠️ 순서 그대로 유지
       MenuItem(
-        title: tr('정책 추천', 'Benefits'),
+        title: '정책 추천',
         icon: Icons.card_giftcard,
         gradient: policy,
         screen: PolicyRecommendationPage(),
       ),
       MenuItem(
-        title: tr('주변 시설', 'Nearby'),
+        title: '주변 시설',
         icon: Icons.place,
         gradient: nearby,
         screen: NearbyScreen(),
       ),
       MenuItem(
-        title: tr('체크리스트', 'Checklist'),
-        icon: Icons.check_circle_outline, // 메인 아이콘은 원형 유지
+        title: '체크리스트',
+        icon: Icons.check_circle_outline,
         gradient: checklist,
         screen: ChecklistScreen(),
       ),
       MenuItem(
-        title: tr('건강/육아 정보', 'Custom Info'),
+        title: '건강/육아 정보',
         icon: Icons.info,
         gradient: health,
         screen: HealthInfoList(),
@@ -153,34 +153,43 @@ class MainGridMenu extends StatelessWidget {
     final items = _getMenuItems(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-
-    // 버튼 톤
-    final primaryBg = isDark ? cs.primary : const Color(0xFFECE8FF);
-    final primaryFg = isDark ? Colors.white : const Color(0xFF6B5CFF);
-    final secondaryBg = isDark ? cs.surfaceContainerHighest : const Color(0xFFF4F6F8);
-    final secondaryFg = isDark ? cs.onSurface : const Color(0xFF3C3F44);
-    final secondaryBorder =
-    isDark ? Colors.white.withOpacity(.08) : Colors.black.withOpacity(.06);
+    final spacing = 14.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         children: [
-          /* ===== 2×2 그리드 메뉴 (순서 동일) ===== */
+          // ===== 2×2 버튼 그리드 =====
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1,
-              children:
-              items.map((item) => _buildGridItem(item, context)).toList(),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(child: _buildGridItem(items[0], context)),
+                      SizedBox(width: spacing),
+                      Expanded(child: _buildGridItem(items[1], context)),
+                    ],
+                  ),
+                ),
+                SizedBox(height: spacing),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(child: _buildGridItem(items[2], context)),
+                      SizedBox(width: spacing),
+                      Expanded(child: _buildGridItem(items[3], context)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
-          /* ===== 임신일 수 표시(칩) ===== */
-          if (currentWeek != null && currentWeek! > 0) ...[
-            const SizedBox(height: 8),
+          const SizedBox(height: 16),
+
+          // ===== 임신일 수 표시 칩 =====
+          if (currentWeek != null && currentWeek! > 0)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -201,67 +210,8 @@ class MainGridMenu extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-
-          const SizedBox(height: 14),
-
-          /* ===== AI와 대화하기 (Primary Tonal) ===== */
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.smart_toy),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => AiScreen()),
-              ),
-              label: Text(
-                tr('AI와 대화하기', 'Chat with AI'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryBg,
-                foregroundColor: primaryFg,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-          ),
 
           const SizedBox(height: 12),
-
-          /* ===== 정보 입력하기 (Tonal/Outline) ===== */
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.edit_note),
-              onPressed: () async {
-                final result = await Navigator.push<Map<String, dynamic>>(
-                  context,
-                  MaterialPageRoute(builder: (_) => InfoInputMainScreen()),
-                );
-                if (result != null && onWeekUpdated != null) {
-                  onWeekUpdated!(result['dayCount'] as int);
-                }
-              },
-              label: Text(
-                tr('정보 입력하기', 'Input Info'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: secondaryBg,
-                foregroundColor: secondaryFg,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: secondaryBorder, width: 1),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -270,8 +220,6 @@ class MainGridMenu extends StatelessWidget {
   /* ───────────────────── MenuItem 카드 ───────────────────── */
   Widget _buildGridItem(MenuItem item, BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // 카드 스타일: 그라데이션 + 얇은 보더 + 소프트 섀도우 + 아이콘 캡슐
     final borderColor =
     isDark ? Colors.white.withOpacity(.10) : Colors.black.withOpacity(.06);
     final shadowColor =
@@ -300,7 +248,6 @@ class MainGridMenu extends StatelessWidget {
               BoxShadow(
                 color: shadowColor,
                 blurRadius: 18,
-                spreadRadius: 0,
                 offset: const Offset(0, 8),
               ),
             ],
@@ -342,7 +289,6 @@ class MainGridMenu extends StatelessWidget {
     );
   }
 }
-
 class MenuItem {
   final String title;
   final IconData icon;

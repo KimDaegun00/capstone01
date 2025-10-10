@@ -22,18 +22,28 @@ class _NearbyScreenState extends State<NearbyScreen> {
       ..addJavaScriptChannel(
         'BackChannel',
         onMessageReceived: (JavaScriptMessage msg) async {
+          final message = msg.message;
+
+          // 단순 문자열 처리
+          if (message == 'goBack') {
+            if (mounted) Navigator.of(context).pop();
+            return;
+          }
+
+          // JSON 형식 메시지 처리
           try {
-            final data = jsonDecode(msg.message);
+            final data = jsonDecode(message);
             if (data['type'] == 'openExternal') {
               final url = data['url'];
               if (await canLaunchUrlString(url)) {
-                await launchUrlString(url, mode: LaunchMode.externalApplication);
+                await launchUrlString(url,
+                    mode: LaunchMode.externalApplication);
               }
             } else if (data['type'] == 'goBack') {
-              Navigator.of(context).pop();
+              if (mounted) Navigator.of(context).pop();
             }
           } catch (e) {
-            print('Invalid message from JS: ${msg.message}');
+            debugPrint('Invalid JS message: $message');
           }
         },
       );

@@ -314,7 +314,7 @@
           display: none;
           /* 결과 있을 때만 표시 */
           flex-direction: column;
-          transition: height 0.3s ease;
+          transition: height 0.01s ease;
           /* 부드러운 애니메이션 */
         }
 
@@ -350,6 +350,8 @@
           justify-content: center;
           cursor: grab;
         }
+
+
 
         /* 드래그바 모양 */
         #dragHandle {
@@ -516,6 +518,8 @@
           /* 클릭 시 조금 더 진한 회색 */
         }
     </style>
+
+
 </head>
 
 <body>
@@ -781,7 +785,7 @@
     /* ====== 바텀시트 드래그 이벤트 ====== */
     const panel = document.getElementById("leftPanel");
     const header = document.getElementById("leftPanelHeader");
-    const heights = [15, 30, 70]; // % 단위 단계
+    const heights = [5, 30, 70]; // % 단위 단계
     let startY = 0;
     let startHeight = 30; // 초기 30%
 
@@ -1223,8 +1227,8 @@
         cursor: pointer;">&times;</button>
       <div class="title">
         <a href="https://info.childcare.go.kr/info_html5/pnis/search/preview/SummaryInfoSlPu.jsp?flag=YJ&STCODE_POP=${item.code}&CRNAMETITLE=${item.name}&loginFlag=Y"
-           target="_blank"
-           class="externalLink">
+           class="externalLink"
+           style="color:#007AFF; text-decoration:none;">
           ${item.name}
         </a>
       </div>
@@ -1247,21 +1251,31 @@
           const link = content.querySelector('.externalLink');
           if (link) {
             link.addEventListener('click', (e) => {
-              // Flutter WebView에서만 메시지 보내기
-              if (window.BackChannel) {
-                e.preventDefault(); // WebView 내부 이동 막기
+              e.preventDefault(); // 기본 동작 막기
+
+              // ✅ Flutter WebView 연동
+              if (window.BackChannel && typeof window.BackChannel.postMessage === "function") {
                 // InfoWindow 닫기
                 if (currentInfoWindow) {
                   currentInfoWindow.close();
                   currentInfoWindow = null;
                 }
-                window.BackChannel.postMessage(JSON.stringify({ type: 'openExternal', url: link.href }));
+
+                // Flutter로 메시지 전송
+                window.BackChannel.postMessage(JSON.stringify({
+                  type: 'openExternal',
+                  url: link.href
+                }));
               }
-              // 일반 웹 브라우저는 target="_blank"로 새 탭에서 열림
+              // ✅ 일반 브라우저에서는 새 탭으로 열기
+              else {
+                window.open(link.href, '_blank');
+              }
             });
           }
         }, 200);
       }
+
 
     }
 

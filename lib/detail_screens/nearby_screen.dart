@@ -24,7 +24,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
         onMessageReceived: (JavaScriptMessage msg) async {
           final message = msg.message;
 
-          // 단순 문자열 처리
+          // 뒤로가기
           if (message == 'goBack') {
             if (mounted) Navigator.of(context).pop();
             return;
@@ -35,25 +35,38 @@ class _NearbyScreenState extends State<NearbyScreen> {
             final data = jsonDecode(message);
             if (data['type'] == 'openExternal') {
               final url = data['url'];
+
+              // 외부 브라우저로 열 수 있는지 확인
               if (await canLaunchUrlString(url)) {
-                await launchUrlString(url,
-                    mode: LaunchMode.externalApplication);
+                await launchUrlString(url, mode: LaunchMode.externalApplication);
+              } else {
+                // 외부 브라우저 없으면 WebView 내부에서 열기
+                _controller.loadRequest(Uri.parse(url));
               }
-            } else if (data['type'] == 'goBack') {
-              if (mounted) Navigator.of(context).pop();
             }
           } catch (e) {
             debugPrint('Invalid JS message: $message');
           }
         },
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (NavigationRequest request) {
+            // WebView 내부에서 열 수 있는 URL 허용
+            if (request.url.startsWith('http')) {
+              return NavigationDecision.navigate;
+            }
+            return NavigationDecision.prevent;
+          },
+        ),
       );
+
     _loadHtml();
   }
 
   Future<void> _loadHtml() async {
-    String fileHtmlContents =
-    await rootBundle.loadString('assets/kakao_map.html');
-    _controller.loadHtmlString(fileHtmlContents);
+    // 로컬 HTML 파일 불러오기 (Flutter asset)
+    await _controller.loadFlutterAsset('assets/kakao_map.html');
   }
 
   @override

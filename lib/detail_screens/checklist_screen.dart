@@ -208,9 +208,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   int? _pregnancyWeek;
 
   /// 화면에 실제로 그릴 주차 데이터(현재 주차 표시 포함)
-  late List<WeekSectionData> _weeks;
+  late List<WeekSectionData> _weeks = [];
 
-  int get _currentWeekIndex => _weeks.indexWhere((w) => w.isCurrent);
+  int get _currentWeekIndex {
+    final idx = _weeks.indexWhere((w) => w.isCurrent);
+    debugPrint('_currentWeekIndex 계산: $idx (총 ${_weeks.length}개 섹션)');
+    return idx;
+  }
 
   // persistence keys
   static const _kCustom = 'checklist_customByWeek_v1';
@@ -219,9 +223,11 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   @override
   void initState() {
     super.initState();
-    _weeks = List.of(_weeksMaster); // 초기값
-    _sectionKeys = List.generate(_weeks.length, (_) => GlobalKey());
-    for (int i = 0; i < _weeks.length; i++) {
+    _weeks = []; // 빈 리스트로 시작
+    // _weeksMaster의 길이를 기준으로 GlobalKey 생성 (고정된 12개 섹션)
+    _sectionKeys = List.generate(_weeksMaster.length, (_) => GlobalKey());
+    debugPrint(_sectionKeys.toString());
+    for (int i = 0; i < _weeksMaster.length; i++) {
       _ensureWeek(i);
     }
     _loadPersisted();
@@ -253,8 +259,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
       _pregnancyWeek = week;
       _applyPregnancyWeekToSections();
-      // 자동 스크롤
-      Future.delayed(const Duration(milliseconds: 150), _scrollToCurrent);
+      
+      // 위젯 트리 렌더링 완료 후 자동 스크롤
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _scrollToCurrent();
+        }
+      });
     } catch (e) {
       debugPrint('임신주차 로드 실패: $e');
     }
@@ -262,11 +273,25 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   void _applyPregnancyWeekToSections() {
     final idx = _indexForWeek(_pregnancyWeek);
+    debugPrint('임신주차 적용: $_pregnancyWeek -> 인덱스 $idx');
+    
     setState(() {
+      // _weeks를 _weeksMaster 기준으로 초기화 (GlobalKey와 길이 일치)
       _weeks = List.generate(_weeksMaster.length, (i) {
         final base = _weeksMaster[i];
-        return base.copyWith(isCurrent: i == idx);
+        final isCurrent = i == idx;
+        if (isCurrent) {
+          debugPrint('현재 주차로 설정: ${base.leftTitle} (인덱스 $i)');
+        }
+        return base.copyWith(isCurrent: isCurrent);
       });
+    });
+    
+    // GlobalKey가 안전하게 연결될 수 있도록 한 프레임 대기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        debugPrint('위젯 트리 업데이트 완료, GlobalKey 준비됨 (총 ${_weeks.length}개 섹션)');
+      }
     });
   }
 
@@ -420,16 +445,61 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   void _scrollToCurrent() {
     final idx = _currentWeekIndex;
-    if (idx < 0) return;
+    debugPrint('현재 주차 인덱스: $idx (임신주차: $_pregnancyWeek)');
+    
+    if (idx < 0) {
+      debugPrint('현재 주차 인덱스를 찾을 수 없음');
+      return;
+    }
+    
+    // 인덱스 범위 검증
+    if (idx >= _sectionKeys.length) {
+      debugPrint('인덱스 범위 초과: $idx >= ${_sectionKeys.length}');
+      return;
+    }
+    
     final ctx = _sectionKeys[idx].currentContext;
     if (ctx != null) {
+      debugPrint('스크롤 대상 위젯 발견, 스크롤 시작');
       Scrollable.ensureVisible(
         ctx,
-        duration: const Duration(milliseconds: 450),
+        duration: const Duration(milliseconds: 600),
         curve: Curves.easeOutCubic,
-        alignment: 0.1,
+        alignment: 0.15,
       );
+    } else {
+      debugPrint('스크롤 대상 위젯의 context가 null - 재시도 예정');
+      // context가 아직 준비되지 않은 경우, 최대 3번까지 재시도
+      _retryScrollToCurrent(3);
     }
+  }
+  
+  void _retryScrollToCurrent(int retryCount) {
+    if (retryCount <= 0) {
+      debugPrint('스크롤 재시도 횟수 초과');
+      return;
+    }
+    
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+      
+      final idx = _currentWeekIndex;
+      if (idx < 0 || idx >= _sectionKeys.length) return;
+      
+      final ctx = _sectionKeys[idx].currentContext;
+      if (ctx != null) {
+        debugPrint('재시도 성공: 스크롤 시작');
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+          alignment: 0.15,
+        );
+      } else {
+        debugPrint('재시도 $retryCount: context 여전히 null');
+        _retryScrollToCurrent(retryCount - 1);
+      }
+    });
   }
 
   @override
@@ -472,33 +542,41 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ],
       ),
 
-      // 본문 리스트
-      body: ListView.separated(
+      // 본문 리스트 - 모든 위젯을 즉시 렌더링하여 lazy loading 극복
+      body: SingleChildScrollView(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         physics: const BouncingScrollPhysics(),
-        itemCount: _weeks.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          _ensureWeek(index); // 방어
+        child: Column(
+          children: [
+            ...List.generate(
+              _weeks.length,
+              (index) {
+                _ensureWeek(index); // 방어
 
-          final data = _weeks[index];
-          final combined = _combinedItems(index);
-          return _WeekSectionTile(
-            key: _sectionKeys[index],
-            data: data,
-            isFirst: index == 0,
-            isLast: index == _weeks.length - 1,
-            doneCount: _doneCount(index),
-            totalCount: combined.length,
-            onAddCustom: () => _addCustomItem(index),
-            onToggle: (itemIndex) => _toggleDone(index, itemIndex),
-            isItemDone: (itemIndex) => _doneByWeek[index]!.contains(itemIndex),
-            combinedItems: combined,
-            systemCount: data.items.length,
-            onDeleteCustom: (combinedIndex) => _deleteCustomItem(index, combinedIndex),
-          );
-        },
+                final data = _weeks[index];
+                final combined = _combinedItems(index);
+                return Padding(
+                  padding: EdgeInsets.only(bottom: index < _weeks.length - 1 ? 16 : 0),
+                  child: _WeekSectionTile(
+                    key: _sectionKeys[index],
+                    data: data,
+                    isFirst: index == 0,
+                    isLast: index == _weeks.length - 1,
+                    doneCount: _doneCount(index),
+                    totalCount: combined.length,
+                    onAddCustom: () => _addCustomItem(index),
+                    onToggle: (itemIndex) => _toggleDone(index, itemIndex),
+                    isItemDone: (itemIndex) => _doneByWeek[index]!.contains(itemIndex),
+                    combinedItems: combined,
+                    systemCount: data.items.length,
+                    onDeleteCustom: (combinedIndex) => _deleteCustomItem(index, combinedIndex),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
 
       // ✅ FAB 제거(오른쪽 아래 "임신 n주차로" 버튼 삭제)

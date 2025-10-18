@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:capstone/services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PolicyRecommendationPage extends StatefulWidget {
   const PolicyRecommendationPage({super.key});
@@ -810,6 +811,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                     ],
                   ),
                 ),
+
+              SizedBox(height: 36),
                   ],
                 ),
               ),
@@ -874,7 +877,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
   }
 }
 
-class PolicyResultPage extends StatelessWidget {
+class PolicyResultPage extends StatefulWidget {
   final List<Map<String, dynamic>> results;
   final String userInput;
   final int count;
@@ -887,6 +890,182 @@ class PolicyResultPage extends StatelessWidget {
     required this.count,
     this.selectedCategory,
   });
+
+  @override
+  _PolicyResultPageState createState() => _PolicyResultPageState();
+}
+
+class _PolicyResultPageState extends State<PolicyResultPage> {
+  // 즐겨찾기 상태 관리
+  Map<String, bool> _bookmarkStates = {};
+  Map<String, bool> _bookmarkLoadingStates = {};
+
+  // 즐겨찾기 추가 함수
+  Future<void> _addBookmark(String serviceId, String serviceName) async {
+    if (_bookmarkLoadingStates[serviceId] == true) return;
+
+    setState(() {
+      _bookmarkLoadingStates[serviceId] = true;
+    });
+
+    try {
+      print('🔄 즐겨찾기 추가 시작...');
+      print('📝 서비스ID: $serviceId');
+      print('📝 서비스명: $serviceName');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'bookmark-policy',
+        body: {
+          'serviceId': serviceId,
+          'serviceName': serviceName,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      print('📊 응답 데이터: $data');
+
+      if (data != null && data['success'] == true) {
+        setState(() {
+          _bookmarkStates[serviceId] = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('즐겨찾기에 추가되었습니다!'),
+            backgroundColor: Colors.green[600],
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        print('✅ 즐겨찾기 추가 완료');
+      } else {
+        final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $errorMsg'),
+            backgroundColor: Colors.red[600],
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        print('❌ 즐겨찾기 추가 오류: $errorMsg');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 3),
+        ),
+      );
+      print('❌ 즐겨찾기 추가 네트워크 오류: $e');
+    } finally {
+      setState(() {
+        _bookmarkLoadingStates[serviceId] = false;
+      });
+    }
+  }
+
+  // 즐겨찾기 제거 함수
+  Future<void> _removeBookmark(String serviceId, String serviceName) async {
+    if (_bookmarkLoadingStates[serviceId] == true) return;
+
+    setState(() {
+      _bookmarkLoadingStates[serviceId] = true;
+    });
+
+    try {
+      print('🔄 즐겨찾기 제거 시작...');
+      print('📝 서비스ID: $serviceId');
+      print('📝 서비스명: $serviceName');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'unbookmark-policy',
+        body: {
+          'serviceId': serviceId,
+          'serviceName': serviceName,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      print('📊 응답 데이터: $data');
+
+      if (data != null && data['success'] == true) {
+        setState(() {
+          _bookmarkStates[serviceId] = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('즐겨찾기에서 제거되었습니다!'),
+            backgroundColor: Colors.orange[600],
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        print('✅ 즐겨찾기 제거 완료');
+      } else {
+        final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $errorMsg'),
+            backgroundColor: Colors.red[600],
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        print('❌ 즐겨찾기 제거 오류: $errorMsg');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 3),
+        ),
+      );
+      print('❌ 즐겨찾기 제거 네트워크 오류: $e');
+    } finally {
+      setState(() {
+        _bookmarkLoadingStates[serviceId] = false;
+      });
+    }
+  }
+
+  // 즐겨찾기 토글 함수 (통합)
+  Future<void> _toggleBookmark(String serviceId, String serviceName) async {
+    final currentState = _bookmarkStates[serviceId] ?? false;
+    
+    if (currentState) {
+      await _removeBookmark(serviceId, serviceName);
+    } else {
+      await _addBookmark(serviceId, serviceName);
+    }
+  }
+
+  // URL을 외부 브라우저에서 열기
+  Future<void> _launchUrl(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      print('✅ URL 열기 성공: $url');
+    } catch (e) {
+      print('❌ URL 열기 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('URL을 여는 중 오류가 발생했습니다.'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -930,21 +1109,21 @@ class PolicyResultPage extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    '입력: "$userInput"',
+                    '입력: "${widget.userInput}"',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (selectedCategory != null && selectedCategory!.isNotEmpty) ...[
+                  if (widget.selectedCategory != null && widget.selectedCategory!.isNotEmpty) ...[
                     SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(Icons.filter_alt, size: 16, color: Colors.blue[700]),
                         SizedBox(width: 6),
                         Text(
-                          '적용된 필터: $selectedCategory',
+                          '적용된 필터: ${widget.selectedCategory}',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.blue[700],
@@ -956,7 +1135,7 @@ class PolicyResultPage extends StatelessWidget {
                   ],
                   SizedBox(height: 4),
                   Text(
-                    '추천 정책: $count건',
+                    '추천 정책: ${widget.count}건',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -971,7 +1150,7 @@ class PolicyResultPage extends StatelessWidget {
 
             // 결과 목록
             Expanded(
-              child: results.isEmpty
+              child: widget.results.isEmpty
                   ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1002,10 +1181,14 @@ class PolicyResultPage extends StatelessWidget {
                 ),
               )
                   : ListView.builder(
-                itemCount: results.length,
+                itemCount: widget.results.length,
                 itemBuilder: (context, index) {
-                  final policy = results[index];
+                  final policy = widget.results[index];
                   final similarity = (policy['유사도'] ?? 0) * 100;
+                  final serviceId = policy['서비스ID']?.toString() ?? '';
+                  final serviceName = policy['서비스명'] ?? '서비스명 없음';
+                  final isBookmarked = _bookmarkStates[serviceId] ?? false;
+                  final isLoading = _bookmarkLoadingStates[serviceId] ?? false;
 
                   return Card(
                     margin: EdgeInsets.only(bottom: 12),
@@ -1025,7 +1208,7 @@ class PolicyResultPage extends StatelessWidget {
                         ),
                       ),
                       title: Text(
-                        policy['서비스명'] ?? '서비스명 없음',
+                        serviceName,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -1054,6 +1237,28 @@ class PolicyResultPage extends StatelessWidget {
                             ],
                           ),
                         ],
+                      ),
+                      trailing: IconButton(
+                        icon: isLoading
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isBookmarked ? Colors.green[600]! : Colors.grey[600]!,
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                color: isBookmarked ? Colors.green[600] : Colors.grey[600],
+                                size: 24,
+                              ),
+                        onPressed: isLoading
+                            ? null
+                            : () => _toggleBookmark(serviceId, serviceName),
+                        tooltip: isBookmarked ? '즐겨찾기에서 제거' : '즐겨찾기에 추가',
                       ),
                       children: [
                         Padding(
@@ -1108,6 +1313,8 @@ class PolicyResultPage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(String label, dynamic value) {
+    final isUrl = label == '상세조회URL';
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1134,18 +1341,45 @@ class PolicyResultPage extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: isUrl ? Colors.blue[50] : Colors.grey[50],
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Text(
-            value?.toString() ?? '정보 없음',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-              height: 1.4,
+            border: Border.all(
+              color: isUrl ? Colors.blue[200]! : Colors.grey[200]!,
             ),
           ),
+          child: isUrl && value != null && value.toString().isNotEmpty
+              ? InkWell(
+                  onTap: () => _launchUrl(value.toString()),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          value.toString(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue[700],
+                            height: 1.4,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.open_in_new,
+                        size: 16,
+                        color: Colors.blue[600],
+                      ),
+                    ],
+                  ),
+                )
+              : Text(
+                  value?.toString() ?? '정보 없음',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[800],
+                    height: 1.4,
+                  ),
+                ),
         ),
       ],
     );

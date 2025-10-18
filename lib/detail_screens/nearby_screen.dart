@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NearbyScreen extends StatefulWidget {
   const NearbyScreen({super.key});
@@ -36,11 +35,13 @@ class _NearbyScreenState extends State<NearbyScreen> {
             if (data['type'] == 'openExternal') {
               final url = data['url'];
 
-              // 외부 브라우저로 열 수 있는지 확인
-              if (await canLaunchUrlString(url)) {
-                await launchUrlString(url, mode: LaunchMode.externalApplication);
-              } else {
-                // 외부 브라우저 없으면 WebView 내부에서 열기
+              try {
+                final Uri uri = Uri.parse(url);
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                print('✅ 외부 URL 열기 성공: $url');
+              } catch (e) {
+                print('❌ 외부 URL 열기 실패: $e');
+                // 외부 브라우저에서 열기 실패 시 WebView 내부에서 열기
                 _controller.loadRequest(Uri.parse(url));
               }
             }

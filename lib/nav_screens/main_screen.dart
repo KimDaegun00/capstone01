@@ -1,14 +1,13 @@
 // lib/nav_screens/main_screen.dart
 import 'package:flutter/material.dart';
 import 'package:capstone/main.dart'; // tr(), langNotifier
-import 'package:capstone/nav_screens/ai_screen.dart';
 import 'package:capstone/nav_screens/profile_screen.dart';
 import 'package:capstone/nav_screens/settingsScreen.dart';
 import 'package:capstone/detail_screens/benefit_screen.dart';
 import 'package:capstone/detail_screens/checklist_screen.dart';
 import 'package:capstone/detail_screens/info_screen.dart';
 import 'package:capstone/detail_screens/nearby_screen.dart';
-import 'package:capstone/nav_screens/InfoInputMainScreen.dart';
+import 'package:capstone/detail_screens/bookmark_screen.dart';
 import 'main_nav.dart';
 import '../services/auth_service.dart';
 
@@ -32,14 +31,7 @@ class _MainScreenState extends State<MainScreen> {
       case 2:
         return SettingsScreen();
       default:
-        return MainGridMenu(
-          currentWeek: currentWeek,
-          onWeekUpdated: (int week) {
-            setState(() {
-              currentWeek = week;
-            });
-          },
-        );
+        return MainGridMenu();
     }
   }
 
@@ -91,14 +83,8 @@ class _MainScreenState extends State<MainScreen> {
 }
 /* ───────────────────────── MainGridMenu ───────────────────────── */
 class MainGridMenu extends StatelessWidget {
-  final int? currentWeek;
-  final void Function(int)? onWeekUpdated;
 
-  const MainGridMenu({
-    super.key,
-    required this.currentWeek,
-    required this.onWeekUpdated,
-  });
+  const MainGridMenu({super.key});
 
   List<MenuItem> _getMenuItems(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -154,6 +140,8 @@ class MainGridMenu extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
     final spacing = 14.0;
+    final primaryBg = isDark ? cs.primary : const Color(0xFFECE8FF);
+    final primaryFg = isDark ? Colors.white : const Color(0xFF6B5CFF);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -188,28 +176,32 @@ class MainGridMenu extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // ===== 임신일 수 표시 칩 =====
-          if (currentWeek != null && currentWeek! > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(.10)
-                      : Colors.black.withOpacity(.05),
-                ),
+          const SizedBox(height: 12),
+
+          /* 정책 즐겨찾기 버튼 */
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.bookmark),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => BookmarkScreen()),
               ),
-              child: Text(
-                '$currentWeek일',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: cs.primary,
+              label: Text(
+                tr('정책 즐겨찾기', 'Bookmark Policies'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBg,
+                foregroundColor: primaryFg,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
               ),
             ),
+          ),
 
           const SizedBox(height: 12),
         ],

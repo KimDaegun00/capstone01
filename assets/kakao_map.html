@@ -1480,6 +1480,25 @@
           }
         };
       }
+
+      // 외부 링크 처리
+      document.addEventListener('click', function(e) {
+        const link = e.target.closest('a.externalLink');
+        if (link) {
+          e.preventDefault(); // 기본 링크 동작 방지
+          const url = link.getAttribute('href');
+          if (url && window.BackChannel && typeof window.BackChannel.postMessage === "function") {
+            // Flutter로 외부 링크 열기 요청
+            window.BackChannel.postMessage(JSON.stringify({
+              type: 'openExternal',
+              url: url
+            }));
+          } else {
+            // BackChannel이 없으면 기본 동작
+            window.open(url, '_blank');
+          }
+        }
+      });
     });
 
 </script>

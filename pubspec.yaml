@@ -48,6 +48,8 @@ dependencies:
   go_router: ^13.2.0
   # 캘린더에서 날짜를 선택하기 위함
   intl: ^0.20.2
+  # 외부 URL을 브라우저에서 열기 위함
+  url_launcher: ^6.2.5
 
 
 

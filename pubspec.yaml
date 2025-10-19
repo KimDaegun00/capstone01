@@ -50,6 +50,8 @@ dependencies:
   intl: ^0.20.2
   # 외부 URL을 브라우저에서 열기 위함
   url_launcher: ^6.2.5
+  # 위치 정보 권한 요청을 위함
+  geolocator: ^14.0.2
 
 
 

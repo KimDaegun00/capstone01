@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 
 class NearbyScreen extends StatefulWidget {
   const NearbyScreen({super.key});
@@ -26,6 +27,16 @@ class _NearbyScreenState extends State<NearbyScreen> {
           // 뒤로가기
           if (message == 'goBack') {
             if (mounted) Navigator.of(context).pop();
+            return;
+          }
+
+          if(message == 'map_is_ready') {
+            _moveToCurrentLocation();
+            return;
+          }
+
+          if(message == 'currentLocation'){
+            _moveToCurrentLocation();
             return;
           }
 
@@ -63,6 +74,66 @@ class _NearbyScreenState extends State<NearbyScreen> {
       );
 
     _loadHtml();
+  }
+
+  @override
+  void dispose() {
+    _controller.clearCache();
+    super.dispose();
+  }
+
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // 1. 위치 서비스 활성화 및 권한 체크 (기존 로직 유지)
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // --- 지연 시간 단축을 위한 최적화 시작 ---
+    
+    // 2. 마지막으로 알려진 위치를 먼저 시도합니다.
+    // 이 방법은 거의 즉시 위치를 반환하여 초기 지연을 제거합니다. (약간 덜 정확할 수 있음)
+    Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
+    if (lastKnownPosition != null) {
+      // 마지막 위치가 있다면, 즉시 반환하여 지도 이동을 실행합니다.
+      return lastKnownPosition;
+    }
+    
+    // 3. 마지막 위치가 없는 경우에만, 현재 위치를 새로 가져옵니다. (시간이 걸릴 수 있음)
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.medium // 정확도를 약간 낮춰 속도 개선 시도
+    );
+
+    return await Geolocator.getCurrentPosition(locationSettings: locationSettings);
+  }
+  
+  void _moveToCurrentLocation() async {
+    try{
+      Position position = await _determinePosition();
+      double lat = position.latitude;
+      double lng = position.longitude;
+      
+      debugPrint("lat: ${lat}, lng: ${lng}");
+      String script = 'setMapCenter($lat, $lng);';
+      await _controller.runJavaScript(script);
+    } catch (e) {
+      debugPrint('Error moving to current location: $e');
+    }
   }
 
   Future<void> _loadHtml() async {

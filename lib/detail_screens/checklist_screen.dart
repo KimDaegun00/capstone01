@@ -3,189 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:capstone/services/auth_service.dart'; // ✅ 프로필(서버)에서 임신주차 로드
-
-/// 항목 제목 → 상세 텍스트 매핑 (2~3줄 요약)
-/// pubspec/assets 수정 없이, 이 파일 하나만으로 동작합니다.
-const Map<String, String> _detailsByTitle = {
-  // 1~3주
-  '임신 전 상담 및 복용 약물 점검':
-  '임신 전·초기에는 일부 약물이 태아에 영향을 줄 수 있어요. '
-      '현재 복용 중인 처방약/한약/영양제 리스트를 의료진에게 공유하고, '
-      '중단·변경은 반드시 상담 후 진행하세요.',
-  '엽산 400µg 복용 시작':
-  '엽산은 태아 신경관 결손 위험을 낮추는 데 중요해요. '
-      '임신 전부터 임신 12주까지 매일 400µg 섭취가 권장됩니다.',
-  '음주·흡연 중단 및 카페인 줄이기':
-  '음주·흡연은 유산·저체중아 등 위험을 높일 수 있어요. '
-      '카페인은 1일 200mg 이하(커피 1~2잔 수준)로 줄이는 게 좋아요.',
-  '기저질환(당뇨·갑상선) 관리 상태 확인':
-  '당뇨·갑상선 등 기저질환을 안정화하면 임신 합병증 위험을 낮출 수 있어요. '
-      '복용 약이 임신에 적합한지 의료진과 확인하세요.',
-  '예방접종 확인(풍진/수두 등)':
-  '풍진·수두 항체가 없으면 임신 전 접종이 권장돼요. '
-      '생백신은 임신 중 금기이니 시기와 종류를 꼭 확인하세요.',
-  '생리 지연 시 임신테스트 준비':
-  '배란 후 약 2주 전후부터 가정용 소변 hCG 검사로 확인이 가능해요. '
-      '음성이라도 의심되면 며칠 뒤 재검하거나 의료진 상담을 권장해요.',
-
-  // 4~6주
-  '초음파 검사':
-  '임신 초기 초음파는 자궁내 임신 여부와 임신 주수를 확인하는 데 사용돼요. '
-      '보통 6주 전후에 시행하며, 필요 시 추적 검사를 할 수 있어요.',
-  '경부암 검사':
-  '자궁경부 세포를 채취해 전암 병변 여부를 확인하는 선별검사예요. '
-      '임신 중에도 비교적 안전하게 시행할 수 있습니다.',
-  '혈액 임신호르몬 검사':
-  '혈중 β-hCG 수치로 임신 진행을 평가해요. '
-      '수치 단독보다 초음파 소견과 함께 해석합니다.',
-  '소변 임신테스트 검사':
-  '간편한 가정용 검사로 임신 여부를 선별해요. '
-      '아침 첫 소변에서 정확도가 더 높습니다.',
-
-  // 7~9주
-  '일반 혈액검사 (CBC)':
-  '빈혈·감염 등 전반 상태를 확인하는 기본 혈액검사예요. '
-      '임신 중 체내 변화 확인 및 이후 비교 지표로 활용됩니다.',
-  '혈액형(ABO/Rh) 검사':
-  '엄마의 ABO/Rh 혈액형을 확인해 수혈·산과적 처치에 대비해요. '
-      'Rh(-)인 경우 이후 항D 예방 주사 계획에 중요합니다.',
-  '불규칙 항체 검사':
-  '수혈·신생아 용혈 등 문제를 일으킬 수 있는 항체 유무를 확인해요. '
-      'Rh 부적합 등 위험을 조기에 파악하는 데 도움됩니다.',
-  '간기능 검사':
-  '간 효소 수치 등으로 간 기능 이상 여부를 확인해요. '
-      '임신 중 약물 복용·간질환 병력 등이 있으면 특히 중요합니다.',
-  '갑상선 기능 검사':
-  'TSH/T4 등으로 갑상선 기능을 확인해요. '
-      '임신 중 갑상선 이상은 태아 발달에 영향을 줄 수 있어 조기 평가가 좋아요.',
-  'B형 간염/매독/HIV 등 감염병 선별':
-  '주요 감염병 보유 여부를 확인해 산모·태아 관리 계획을 세워요. '
-      '양성 시 전염 예방 및 산과적 조치가 매우 중요합니다.',
-  '소변검사(요단백/세균)':
-  '요로감염·단백뇨 등 여부를 확인해요. '
-      '무증상 세균뇨도 임신 중 합병증과 연관되어 조기 치료가 필요할 수 있어요.',
-
-  // 10~13주
-  '목투명대(NT) 초음파':
-  '태아 목덜미 두께를 측정해 염색체 이상 가능성을 선별해요. '
-      '보통 11~13+6주 사이에 시행합니다.',
-  '초기 선별검사(PAPP-A, β-hCG)':
-  '혈액 표지자와 NT를 종합해 염색체 이상 위험도를 평가해요. '
-      '양성 시 추가 정밀 검사를 고려합니다.',
-  'NIPT(비침습 선별) 선택':
-  '모체 혈액에서 태아 DNA를 분석해 염색체 이상을 선별해요. '
-      '정확도가 높지만 확진 검사는 아니며, 결과에 따라 상담이 필요합니다.',
-  '풍진 면역 확인':
-  '풍진 항체를 확인해 면역 여부를 파악해요. '
-      '면역이 없다면 임신 전 접종이 필요하고, 임신 중에는 노출 예방이 중요해요.',
-  '치과 검진·스케일링 권장':
-  '임신 중 잇몸질환은 조산 위험과 연관될 수 있어요. '
-      '통증·염증이 있으면 적절한 시기에 치료가 가능합니다.',
-
-  // 14~18주
-  '중기 기본 진료(혈압/체중/요검사)':
-  '정기 진료로 혈압·체중·소변 등을 확인해 임신 경과를 모니터링해요. '
-      '이상 소견은 조기 개입에 도움이 됩니다.',
-  'AFP/쿼드 테스트(15~20주 권장)':
-  '혈중 표지자(AFP 등)로 신경관 결손·일부 염색체 이상 위험을 선별해요. '
-      '양성 시 정밀 초음파 등 추가 평가를 권장합니다.',
-  '정밀초음파 예약':
-  '장기 구조·발달을 자세히 보는 검사를 예약해요. '
-      '주수 적정 시기에 시행하면 이상 발견에 도움이 됩니다.',
-  '영양·철분 복용 체크':
-  '임신기 권장 영양소 섭취와 철분 보충 상태를 점검해요. '
-      '빈혈 예방과 피로 완화에 도움됩니다.',
-
-  // 19~22주
-  '정밀 기형아 초음파(장기·구조 확인)':
-  '뇌·심장·척추 등 주요 장기 구조를 상세히 확인해요. '
-      '각 장기의 발달과 이상 유무를 평가하는 핵심 검사입니다.',
-  '자궁경부 길이·태반 위치 확인':
-  '조산 위험(자궁경부 짧음)과 전치태반 등 위치 이상을 확인해요. '
-      '이상 시 추가 관찰·치료 계획을 세웁니다.',
-  '자궁동맥 도플러(필요 시)':
-  '태반 혈류 상태를 평가해 자간전증·태아발육지연 위험을 가늠해요. '
-      '필요 시 정밀 추적 관찰을 병행합니다.',
-
-  // 23~26주
-  '빈혈 재검(CBC)':
-  '중기 이후 빈혈 여부를 다시 확인해요. '
-      '필요하면 철분 용량·복용 스케줄을 조정합니다.',
-  '요검사(요단백/포도당)':
-  '단백뇨·포도당뇨 등 여부를 확인해 자간전증·당대사 이상 등을 추적해요.',
-  '철분 복용 순응도 체크':
-  '복용 시간·부작용(변비 등)을 확인하고 복용법을 조정해요. '
-      '흡수율을 높이는 팁(비타민C 동시 섭취 등)을 안내합니다.',
-  'Rh(-) 산모: 28주 항D 예방 주사 예약':
-  '산모가 Rh(-)이고 아기 아빠가 Rh(+)일 수 있으면, '
-      '감작 예방을 위해 28주 전후 항D 면역글로불린 주사를 계획해요.',
-
-  // 24~28주
-  'GCT(50g) 선별검사':
-  '임신성 당뇨 선별을 위한 50g 포도당 부하 검사예요. '
-      '기준치 초과 시 진단 검사(OGTT)를 시행합니다.',
-  'OGTT(진단검사, 필요 시)':
-  '선별 양성 시 75g 또는 100g OGTT로 확진을 해요. '
-      '결과에 따라 식이·운동·약물 치료를 결정합니다.',
-  '영양 상담·혈당 관리 교육':
-  '식사 구성·간식·활동량을 조정해 혈당을 안정화하는 방법을 안내해요. '
-      '자가혈당 측정이 필요한 경우 방법을 교육합니다.',
-
-  // 27~29주
-  'Tdap(파상풍·디프테리아·백일해) 27~36주':
-  '신생아 백일해 예방을 위해 27~36주 사이 Tdap 접종이 권장돼요. '
-      '엄마 항체가 아기에게 전달돼 초기 보호에 도움됩니다.',
-  '인플루엔자 예방접종(유행시즌)':
-  '임신부는 독감 합병증 위험이 높아 접종이 권장돼요. '
-      '불활성화 백신을 사용하며, 유행 시즌 전에 맞는 게 좋아요.',
-  'Rh(-) 산모: 항D 면역글로불린(28주)':
-  'Rh(-) 산모의 감작 예방을 위해 28주 전후 항D 주사를 투여해요. '
-      '분만·출혈·침습적 시술 시 추가 투여가 필요할 수 있어요.',
-  '태동 관찰 교육':
-  '규칙적으로 태동을 느끼는지 확인하고, 감소 시 즉시 내원하도록 교육해요. '
-      '개인차가 있어 평소 패턴을 아는 것이 중요합니다.',
-
-  // 30~33주
-  '성장 추적 초음파(필요 시)':
-  '태아 추정체중·양수량·혈류 등을 확인해 성장 상태를 추적해요. '
-      '발육지연 의심 시 관찰 간격을 조정합니다.',
-  '빈혈/요단백 재검':
-  '후기에도 빈혈·단백뇨 여부를 점검해 합병증 신호를 조기에 발견해요.',
-  '분만 계획 상담·병원 등록':
-  '분만 방식·동의서·동반자·통증조절 등 계획을 상의하고, '
-      '분만 예정 병원 등록/투어를 준비해요.',
-  '산후조리/신생아 용품 준비':
-  '산후 회복·모유수유 환경을 준비하고, '
-      '기저귀·카시트 등 필수 용품 체크리스트를 점검해요.',
-
-  // 34~36주
-  'GBS(35~37주) 선별검사':
-  '그룹 B 연쇄구균 보균 여부를 확인해요. '
-      '양성이면 분만 중 항생제 투여로 신생아 감염을 예방합니다.',
-  '태위 확인(둔위 시 상담)':
-  '아기 머리 위치(두정/둔위)를 확인해요. '
-      '둔위면 외회전술 가능 여부나 분만 방식에 대해 상담합니다.',
-  '출산 가방·동의서 준비':
-  '필요 서류·세면도구·산모·신생아 용품을 미리 챙겨요. '
-      '분만 동의서·기증 동의 등 서류도 함께 준비합니다.',
-  '진통·파수 대처 교육':
-  '규칙적 진통 간격·파수 의심 시 병원 연락/내원 기준을 안내해요. '
-      '출혈·심한 통증·태동 감소 등 경고 신호도 숙지합니다.',
-
-  // 37~40주
-  'NST/태동 검사(필요 시)':
-  '태아 심박·활동을 모니터링해 안녕 상태를 확인해요. '
-      '고위험군이나 태동 감소 시 시행을 고려합니다.',
-  '진통 간격/활동 지침':
-  '초산부는 규칙적 진통이 5분 간격 내외로 1시간 지속되면 내원을 권장해요. '
-      '물 샘 의심·심한 통증·출혈 등은 즉시 병원으로 가세요.',
-  '유도분만/제왕절개 상담':
-  '주수·산모·태아 상태에 따라 유도분만이나 수술 여부를 상의해요. '
-      '장단점·위험·회복 과정을 미리 이해하면 도움이 됩니다.',
-  '신생아 접종/출생신고 안내':
-  'BCG 등 초기 예방접종 일정과 출생등록 절차를 안내해요. '
-      '필수 서류·기한을 확인해 누락을 방지하세요.',
-};
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChecklistScreen extends StatefulWidget {
   const ChecklistScreen({super.key});
@@ -207,8 +25,15 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   /// 서버에서 가져온 임신 주차
   int? _pregnancyWeek;
 
+  /// 서버에서 가져온 항목 내용: weekIndex -> itemIndex -> content
+  final Map<int, Map<int, String>> _itemContents = {};
+
   /// 화면에 실제로 그릴 주차 데이터(현재 주차 표시 포함)
   late List<WeekSectionData> _weeks = [];
+
+  /// 로딩 상태 관리
+  bool _isLoading = false;
+  String? _errorMessage;
 
   int get _currentWeekIndex {
     final idx = _weeks.indexWhere((w) => w.isCurrent);
@@ -216,9 +41,328 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     return idx;
   }
 
-  // persistence keys
+  // persistence keys (로컬 백업용)
   static const _kCustom = 'checklist_customByWeek_v1';
   static const _kDone = 'checklist_doneByWeek_v1';
+
+  // ------------------ Supabase 연동 함수들 ------------------
+  
+  /// 체크리스트 시스템 항목 초기화 (사용자 추가 항목은 유지)
+  Future<void> _initChecklistOnServer() async {
+    try {
+      setState(() { _isLoading = true; });
+      final response = await Supabase.instance.client.functions.invoke(
+        'checklist-crud',
+        body: {
+          'action': 'initSystem',
+        },
+      );
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        // 로컬 상태도 초기화 (완료 상태만 초기화, 사용자 추가 항목은 유지)
+        setState(() {
+          _doneByWeek.clear();
+          // _itemContents는 서버에서 다시 로드할 때 채워지므로 여기서는 초기화하지 않음
+        });
+        
+        print('✅ 로컬 완료 상태 초기화 완료 (시스템 + 사용자 추가 항목 모두)');
+        
+        // 로컬 백업도 초기화
+        await _clearLocalBackup();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('체크리스트가 초기화되었습니다.'),
+            backgroundColor: Colors.green[600],
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        
+        // 서버에서 최신 데이터 로드
+        await _loadChecklistFromServer();
+      } else {
+        final msg = data?['error'] ?? '초기화에 실패했습니다.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $msg'),
+            backgroundColor: Colors.red[600],
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
+  Future<void> _confirmAndInitChecklist() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('체크리스트 초기화'),
+          content: const Text('모든 항목의 완료 여부가 다시 설정됩니다.\n사용자 추가 항목은 유지됩니다. 진행할까요?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('초기화')),
+          ],
+        );
+      },
+    );
+    if (ok == true) {
+      await _initChecklistOnServer();
+    }
+  }
+  
+  /// 체크리스트 데이터 로드
+  Future<void> _loadChecklistFromServer() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      print('🔄 체크리스트 데이터 로드 시작...');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'checklist-crud',
+        body: {
+          'action': 'load',
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      print('📊 응답 데이터: $data');
+
+      if (data != null && data['success'] == true) {
+        final checklistByWeek = data['checklistByWeek'] as Map<String, dynamic>? ?? {};
+        final customByWeek = data['customByWeek'] as Map<String, dynamic>? ?? {};
+        final doneByWeek = data['doneByWeek'] as Map<String, dynamic>? ?? {};
+
+        setState(() {
+          // 항목 내용 로드 (시스템 항목)
+          _itemContents.clear();
+          checklistByWeek.forEach((weekStr, items) {
+            final weekIndex = int.tryParse(weekStr);
+            if (weekIndex != null) {
+              _itemContents[weekIndex] = {};
+              for (final item in items as List) {
+                final itemIndex = item['index'] as int;
+                final content = item['content'] as String? ?? '';
+                if (content.isEmpty) {
+                  print('⚠️ 서버에서 빈 내용을 받았습니다: 주차 $weekIndex, 항목 $itemIndex');
+                }
+                _itemContents[weekIndex]![itemIndex] = content;
+              }
+            }
+          });
+
+          // 사용자 추가 항목 로드
+          _customByWeek.clear();
+          customByWeek.forEach((weekStr, items) {
+            final weekIndex = int.tryParse(weekStr);
+            if (weekIndex != null) {
+              final itemList = (items as List).map((item) => item['title'] as String).toList();
+              _customByWeek[weekIndex] = itemList;
+              
+              // 사용자 추가 항목의 내용도 _itemContents에 저장
+              for (final item in items) {
+                final itemIndex = item['index'] as int;
+                final content = item['content'] as String? ?? '';
+                if (content.isNotEmpty) {
+                  _itemContents[weekIndex]![itemIndex] = content;
+                }
+              }
+            }
+          });
+
+          // 완료 상태 로드
+          _doneByWeek.clear();
+          doneByWeek.forEach((weekStr, doneItems) {
+            final weekIndex = int.tryParse(weekStr);
+            if (weekIndex != null) {
+              _doneByWeek[weekIndex] = Set<int>.from((doneItems as List).map((e) => e as int));
+            }
+          });
+        });
+
+        print('✅ 체크리스트 데이터 로드 완료');
+        print('📊 로드된 항목 내용 개수: ${_itemContents.length}개 주차');
+        print('📊 사용자 추가 항목 개수: ${_customByWeek.length}개 주차');
+        _itemContents.forEach((weekIndex, items) {
+          print('  - 주차 $weekIndex: ${items.length}개 항목');
+          items.forEach((itemIndex, content) {
+            if (content.isNotEmpty) {
+              print('    * 항목 $itemIndex: ${content.substring(0, content.length > 50 ? 50 : content.length)}...');
+            }
+          });
+        });
+        _customByWeek.forEach((weekIndex, items) {
+          print('  - 사용자 추가 주차 $weekIndex: ${items.length}개 항목');
+        });
+      } else {
+        final errorMsg = data?['error'] ?? '체크리스트를 불러오는데 실패했습니다.';
+        setState(() {
+          _errorMessage = errorMsg;
+        });
+        print('❌ 체크리스트 로드 오류: $errorMsg');
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = '네트워크 오류: $e';
+      });
+      print('❌ 체크리스트 로드 네트워크 오류: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// 체크리스트 항목 토글
+  Future<void> _toggleItemOnServer(int weekIndex, int itemIndex, bool isCompleted) async {
+    try {
+      print('🔄 체크리스트 항목 토글: 주차 $weekIndex, 항목 $itemIndex, 완료 $isCompleted');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'checklist-crud',
+        body: {
+          'action': 'toggle',
+          'weekIndex': weekIndex,
+          'itemIndex': itemIndex,
+          'isCompleted': isCompleted,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        print('✅ 체크리스트 항목 토글 완료');
+      } else {
+        final errorMsg = data?['error'] ?? '항목 상태 업데이트에 실패했습니다.';
+        print('❌ 체크리스트 토글 오류: $errorMsg');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $errorMsg'),
+            backgroundColor: Colors.red[600],
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ 체크리스트 토글 네트워크 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  /// 사용자 추가 항목 생성
+  Future<void> _addCustomItemToServer(int weekIndex, String itemTitle, String itemContent) async {
+    try {
+      print('🔄 사용자 항목 추가: 주차 $weekIndex, 제목 $itemTitle, 내용: ${itemContent.isNotEmpty ? "있음" : "없음"}');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'checklist-crud',
+        body: {
+          'action': 'addCustom',
+          'weekIndex': weekIndex,
+          'itemTitle': itemTitle,
+          'itemContent': itemContent,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        print('✅ 사용자 항목 추가 완료');
+        // 서버에서 다시 로드하여 최신 상태 반영
+        await _loadChecklistFromServer();
+      } else {
+        final errorMsg = data?['error'] ?? '항목 추가에 실패했습니다.';
+        print('❌ 사용자 항목 추가 오류: $errorMsg');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $errorMsg'),
+            backgroundColor: Colors.red[600],
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ 사용자 항목 추가 네트워크 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  /// 사용자 추가 항목 삭제
+  Future<void> _deleteCustomItemFromServer(int weekIndex, int itemIndex) async {
+    try {
+      print('🔄 사용자 항목 삭제: 주차 $weekIndex, 항목 $itemIndex');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'checklist-crud',
+        body: {
+          'action': 'deleteCustom',
+          'weekIndex': weekIndex,
+          'itemIndex': itemIndex,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        print('✅ 사용자 항목 삭제 완료');
+        // 서버에서 다시 로드하여 최신 상태 반영
+        await _loadChecklistFromServer();
+      } else {
+        final errorMsg = data?['error'] ?? '항목 삭제에 실패했습니다.';
+        print('❌ 사용자 항목 삭제 오류: $errorMsg');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $errorMsg'),
+            backgroundColor: Colors.red[600],
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ 사용자 항목 삭제 네트워크 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+  // --------------------------------------------------
 
   @override
   void initState() {
@@ -230,8 +374,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     for (int i = 0; i < _weeksMaster.length; i++) {
       _ensureWeek(i);
     }
-    _loadPersisted();
+    _loadPersisted(); // 로컬 백업 데이터 로드
     _loadPregnancyWeekAndApply(); // ✅ 서버에서 임신주차 로드 후 적용
+    _loadChecklistFromServer(); // ✅ 서버에서 체크리스트 데이터 로드
   }
 
   void _ensureWeek(int weekIndex) {
@@ -356,6 +501,17 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     await sp.setString(_kCustom, json.encode(customMap));
     await sp.setString(_kDone, json.encode(doneMap));
   }
+
+  /// 로컬 백업 초기화 (완료 상태만 초기화, 사용자 추가 항목은 유지)
+  Future<void> _clearLocalBackup() async {
+    final sp = await SharedPreferences.getInstance();
+    
+    // 완료 상태만 초기화
+    await sp.remove(_kDone);
+    
+    // 사용자 추가 항목은 유지 (삭제하지 않음)
+    print('✅ 로컬 백업 초기화 완료 (완료 상태만 초기화, 사용자 추가 항목 유지)');
+  }
   // --------------------------------------------------
 
   List<String> _combinedItems(int weekIndex) {
@@ -367,8 +523,21 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   void _toggleDone(int weekIndex, int combinedIndex) {
     _ensureWeek(weekIndex);
     final set = _doneByWeek[weekIndex]!;
-    set.contains(combinedIndex) ? set.remove(combinedIndex) : set.add(combinedIndex);
+    final isCurrentlyDone = set.contains(combinedIndex);
+    final newState = !isCurrentlyDone;
+    
+    // 로컬 상태 먼저 업데이트 (즉시 UI 반영)
+    if (newState) {
+      set.add(combinedIndex);
+    } else {
+      set.remove(combinedIndex);
+    }
     setState(() {});
+    
+    // 서버에 상태 동기화
+    _toggleItemOnServer(weekIndex, combinedIndex, newState);
+    
+    // 로컬 백업 저장
     _persist();
   }
 
@@ -377,10 +546,29 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     return _doneByWeek[weekIndex]!.length;
   }
 
+  /// 항목 내용 가져오기 (서버 데이터 우선, 없으면 기본 메시지)
+  String _getItemContent(int weekIndex, int itemIndex, String title) {
+    // 서버에서 가져온 내용이 있으면 사용
+    final serverContent = _itemContents[weekIndex]?[itemIndex];
+    if (serverContent != null && serverContent.isNotEmpty) {
+      print('✅ 항목 내용 찾음: 주차 $weekIndex, 항목 $itemIndex, 제목: $title');
+      return serverContent;
+    }
+    
+    // 서버 내용이 없으면 기본 메시지 표시
+    print('⚠️ 서버에서 항목 내용을 가져오지 못했습니다: 주차 $weekIndex, 항목 $itemIndex, 제목: $title');
+    print('   _itemContents 상태: ${_itemContents[weekIndex]?.keys.toList()}');
+    
+    // 사용자에게는 기본 메시지 표시
+    return '이 항목에 대한 상세 정보가 없습니다.\n필요 시 담당 의료진과 상담을 권장드려요.';
+  }
+
   Future<void> _addCustomItem(int weekIndex) async {
     _ensureWeek(weekIndex);
-    final controller = TextEditingController();
-    final text = await showModalBottomSheet<String>(
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    
+    final result = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
@@ -395,51 +583,107 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text('이 주차에 항목 추가', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              
+              // 제목 입력
               TextField(
-                controller: controller,
+                controller: titleController,
                 decoration: const InputDecoration(
+                  labelText: '항목 제목',
                   hintText: '예) 정밀 초음파 검사 / 간기능 검사',
                   border: OutlineInputBorder(),
                 ),
                 autofocus: true,
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                  child: const Text('추가'),
+              
+              // 내용 입력
+              TextField(
+                controller: contentController,
+                decoration: const InputDecoration(
+                  labelText: '항목 내용 (선택사항)',
+                  hintText: '이 항목에 대한 상세 설명을 입력하세요',
+                  border: OutlineInputBorder(),
                 ),
+                maxLines: 3,
+                minLines: 1,
+              ),
+              const SizedBox(height: 16),
+              
+              // 버튼들
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('취소'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () {
+                        final title = titleController.text.trim();
+                        if (title.isNotEmpty) {
+                          Navigator.pop(ctx, {
+                            'title': title,
+                            'content': contentController.text.trim(),
+                          });
+                        }
+                      },
+                      child: const Text('추가'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
     );
-    if (text != null && text.isNotEmpty) {
-      setState(() => _customByWeek[weekIndex]!.add(text));
-      _persist();
+    
+    if (result != null && result['title']!.isNotEmpty) {
+      // 서버에 항목 추가 (제목과 내용 모두)
+      await _addCustomItemToServer(weekIndex, result['title']!, result['content']!);
     }
   }
 
-  void _deleteCustomItem(int weekIndex, int combinedIndex) {
+  Future<void> _deleteCustomItem(int weekIndex, int combinedIndex) async {
     _ensureWeek(weekIndex);
     final systemLen = _weeks[weekIndex].items.length;
     final localIndex = combinedIndex - systemLen; // 사용자 리스트 내 인덱스
+    
     if (localIndex >= 0 && localIndex < _customByWeek[weekIndex]!.length) {
-      setState(() {
-        _customByWeek[weekIndex]!.removeAt(localIndex);
-        // 완료셋 인덱스 보정
-        final done = _doneByWeek[weekIndex]!;
-        done.remove(combinedIndex);
-        final updated = <int>{};
-        for (final idx in done) {
-          updated.add(idx > combinedIndex ? idx - 1 : idx);
-        }
-        _doneByWeek[weekIndex] = updated;
-      });
-      _persist();
+      final itemTitle = _customByWeek[weekIndex]![localIndex];
+      
+      // 삭제 확인 다이얼로그 표시
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('항목 삭제'),
+            content: Text('"$itemTitle" 항목을 삭제하시겠습니까?\n삭제된 항목은 복구할 수 없습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('취소'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.red[600],
+                ),
+                child: const Text('삭제'),
+              ),
+            ],
+          );
+        },
+      );
+      
+      if (confirmed == true) {
+        // 서버에서 항목 삭제
+        await _deleteCustomItemFromServer(weekIndex, combinedIndex);
+      }
     }
   }
 
@@ -513,6 +757,14 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         foregroundColor: cs.onSurface,
         elevation: 0,
         actions: [
+          TextButton.icon(
+            onPressed: _isLoading ? null : _confirmAndInitChecklist,
+            icon: const Icon(Icons.restart_alt),
+            label: const Text('초기화'),
+            style: TextButton.styleFrom(
+              foregroundColor: cs.primary,
+            ),
+          ),
           if (_pregnancyWeek != null)
             Padding(
               padding: const EdgeInsets.only(right: 10),
@@ -539,6 +791,18 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                 ),
               ),
             ),
+          if (_isLoading)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
+                ),
+              ),
+            ),
         ],
       ),
 
@@ -549,6 +813,43 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
+            // 오류 메시지 표시
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red[600], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: Colors.red[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _errorMessage = null;
+                        });
+                        _loadChecklistFromServer(); // 재시도
+                      },
+                      icon: Icon(Icons.refresh, color: Colors.red[600], size: 20),
+                      tooltip: '다시 시도',
+                    ),
+                  ],
+                ),
+              ),
             ...List.generate(
               _weeks.length,
               (index) {
@@ -571,6 +872,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                     combinedItems: combined,
                     systemCount: data.items.length,
                     onDeleteCustom: (combinedIndex) => _deleteCustomItem(index, combinedIndex),
+                    getItemContent: (itemIndex, title) => _getItemContent(index, itemIndex, title),
                   ),
                 );
               },
@@ -774,6 +1076,7 @@ class _WeekSectionTile extends StatelessWidget {
     required this.combinedItems,
     required this.systemCount,
     required this.onDeleteCustom,
+    required this.getItemContent,
   });
 
   final WeekSectionData data;
@@ -792,7 +1095,10 @@ class _WeekSectionTile extends StatelessWidget {
   final int systemCount;
 
   /// 사용자 항목 삭제 콜백(합쳐진 인덱스 기준)
-  final void Function(int combinedIndex) onDeleteCustom;
+  final Future<void> Function(int combinedIndex) onDeleteCustom;
+
+  /// 항목 내용 가져오기 콜백
+  final String Function(int itemIndex, String title) getItemContent;
 
   @override
   Widget build(BuildContext context) {
@@ -954,13 +1260,10 @@ class _WeekSectionTile extends StatelessWidget {
                         done: isItemDone(i),
                         isUserItem: isUser,
                         onTap: () => onToggle(i),
-                        onInfoTap: isUser
-                            ? null
-                            : () => _showDetailBottomSheet(
+                        onInfoTap: () => _showDetailBottomSheet(
                           context,
                           title,
-                          _detailsByTitle[title] ??
-                              '해당 항목의 요약 정보는 준비 중입니다.\n필요 시 담당 의료진과 상담을 권장드려요.',
+                          getItemContent(i, title),
                         ),
                         onDelete: isUser ? () => onDeleteCustom(i) : null,
                       );
@@ -993,7 +1296,7 @@ class _CheckRow extends StatelessWidget {
   final bool isUserItem;
   final VoidCallback onTap;
   final VoidCallback? onInfoTap; // 사용자 항목은 null
-  final VoidCallback? onDelete;  // 사용자 항목에서만 사용
+  final Future<void> Function()? onDelete;  // 사용자 항목에서만 사용
 
   @override
   Widget build(BuildContext context) {
@@ -1004,10 +1307,6 @@ class _CheckRow extends StatelessWidget {
       onLongPress: () {
         if (onInfoTap != null) {
           onInfoTap!();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('직접 추가한 항목입니다')),
-          );
         }
       },
       child: Padding(
@@ -1056,16 +1355,16 @@ class _CheckRow extends StatelessWidget {
 
             const SizedBox(width: 8),
 
-            // 트레일링: 시스템 항목은 >, 사용자 항목은 휴지통(중립색)
-            if (!isUserItem)
+            // 트레일링: 상세 보기 버튼과 삭제 버튼
+            if (onInfoTap != null)
               IconButton(
                 onPressed: onInfoTap,
                 icon: Icon(Icons.chevron_right, color: cs.onSurface.withOpacity(0.55)),
                 tooltip: '상세 보기',
-              )
-            else
+              ),
+            if (onDelete != null)
               IconButton(
-                onPressed: onDelete,
+                onPressed: () => onDelete!(),
                 icon: Icon(Icons.delete_outline, color: cs.onSurface.withOpacity(0.55)),
                 tooltip: '삭제',
               ),

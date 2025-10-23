@@ -899,6 +899,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
   // 즐겨찾기 상태 관리
   Map<String, bool> _bookmarkStates = {};
   Map<String, bool> _bookmarkLoadingStates = {};
+  bool _initialBookmarkLoading = false;
 
   // 즐겨찾기 추가 함수
   Future<void> _addBookmark(String serviceId, String serviceName) async {
@@ -1047,6 +1048,77 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
     } else {
       await _addBookmark(serviceId, serviceName);
     }
+  }
+
+  // 초기 즐겨찾기 상태 확인 함수
+  Future<void> _checkInitialBookmarkStates() async {
+    if (_initialBookmarkLoading) return;
+
+    setState(() {
+      _initialBookmarkLoading = true;
+    });
+
+    try {
+      print('🔄 초기 즐겨찾기 상태 확인 시작...');
+      
+      // 모든 정책의 서비스ID 수집
+      final serviceIds = widget.results
+          .map((policy) => policy['서비스ID']?.toString())
+          .where((id) => id != null && id.isNotEmpty)
+          .toList();
+
+      if (serviceIds.isEmpty) {
+        setState(() {
+          _initialBookmarkLoading = false;
+        });
+        return;
+      }
+
+      print('📝 확인할 서비스ID들: $serviceIds');
+
+      final response = await Supabase.instance.client.functions.invoke(
+        'check-bookmark-states',
+        body: {
+          'serviceIds': serviceIds,
+        },
+      );
+
+      print('✅ Edge Function 응답 받음: $response');
+
+      final data = response.data;
+      print('📊 응답 데이터: $data');
+
+      if (data != null && data['success'] == true) {
+        final bookmarkStates = data['bookmarkStates'] as Map<String, dynamic>? ?? {};
+        
+        setState(() {
+          // 응답에서 받은 즐겨찾기 상태를 _bookmarkStates에 반영
+          bookmarkStates.forEach((serviceId, isBookmarked) {
+            _bookmarkStates[serviceId] = isBookmarked == true;
+          });
+        });
+
+        print('✅ 초기 즐겨찾기 상태 확인 완료: $_bookmarkStates');
+      } else {
+        final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
+        print('❌ 초기 즐겨찾기 상태 확인 오류: $errorMsg');
+      }
+    } catch (e) {
+      print('❌ 초기 즐겨찾기 상태 확인 네트워크 오류: $e');
+    } finally {
+      setState(() {
+        _initialBookmarkLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // 페이지 로드 시 초기 즐겨찾기 상태 확인
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialBookmarkStates();
+    });
   }
 
   // URL을 외부 브라우저에서 열기
@@ -1239,7 +1311,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                         ],
                       ),
                       trailing: IconButton(
-                        icon: isLoading
+                        icon: (isLoading || _initialBookmarkLoading)
                             ? SizedBox(
                                 width: 20,
                                 height: 20,
@@ -1255,7 +1327,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                                 color: isBookmarked ? Colors.green[600] : Colors.grey[600],
                                 size: 24,
                               ),
-                        onPressed: isLoading
+                        onPressed: (isLoading || _initialBookmarkLoading)
                             ? null
                             : () => _toggleBookmark(serviceId, serviceName),
                         tooltip: isBookmarked ? '즐겨찾기에서 제거' : '즐겨찾기에 추가',

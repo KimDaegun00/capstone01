@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:capstone/main.dart'; // tr, themeNotifier, langNotifier
 import 'package:capstone/nav_screens/feedback_screen.dart';
+import 'package:capstone/services/theme_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  Future<void> _saveTheme(bool isDark) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkMode', isDark);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +24,24 @@ class SettingsScreen extends StatelessWidget {
           ValueListenableBuilder<ThemeMode>(
             valueListenable: themeNotifier,
             builder: (context, currentMode, _) {
+              // 시스템 모드가 선택되어 있으면 라이트 모드로 변환
+              if (currentMode == ThemeMode.system) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  themeNotifier.value = ThemeMode.light;
+                  ThemeService.saveThemeMode(ThemeMode.light);
+                });
+              }
+              
+              final isDark = currentMode == ThemeMode.dark;
+              
               return SwitchListTile(
                 title: Text(tr('다크모드', 'Dark Mode')),
                 secondary: const Icon(Icons.dark_mode),
-                value: currentMode == ThemeMode.dark,
-                onChanged: (bool isDark) {
-                  themeNotifier.value =
-                  isDark ? ThemeMode.dark : ThemeMode.light;
-                  _saveTheme(isDark);
+                value: isDark,
+                onChanged: (bool value) {
+                  final newMode = value ? ThemeMode.dark : ThemeMode.light;
+                  themeNotifier.value = newMode;
+                  ThemeService.saveThemeMode(newMode);
                 },
               );
             },

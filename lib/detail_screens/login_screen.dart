@@ -73,13 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
+      backgroundColor: cs.background,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            colors: isDark
+                ? [cs.primary.withOpacity(0.8), cs.secondary.withOpacity(0.6)]
+                : [const Color(0xFF667eea), const Color(0xFF764ba2)],
           ),
         ),
         child: SafeArea(
@@ -99,26 +105,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // 앱 로고/제목
-                        const Icon(
+                        Icon(
                           Icons.lock_outline,
                           size: 64,
-                          color: Color(0xFF667eea),
+                          color: cs.primary,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           '맘편한AI 로그인',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           '로그인하여 계속하세요',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF666666),
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -135,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: cs.surfaceVariant,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -171,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: cs.surfaceVariant,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -191,14 +197,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.red[50],
+                              color: cs.error.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red[200]!),
+                              border: Border.all(color: cs.error.withOpacity(0.3)),
                             ),
                             child: Text(
                               _errorMessage!,
                               style: TextStyle(
-                                color: Colors.red[700],
+                                color: cs.error,
                                 fontSize: 14,
                               ),
                             ),
@@ -213,23 +219,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _signIn,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               elevation: 2,
                             ),
                             child: _isLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     height: 20,
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(cs.onPrimary),
                                     ),
                                   )
-                                : const Text(
+                                : Text(
                                     '로그인',
                                     style: TextStyle(
                                       fontSize: 16,
@@ -244,9 +250,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               '계정이 없으신가요? ',
-                              style: TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(color: cs.onSurfaceVariant),
                             ),
                             TextButton(
                               onPressed: () {
@@ -256,10 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 );
                               },
-                              child: const Text(
+                              child: Text(
                                 '회원가입',
                                 style: TextStyle(
-                                  color: Color(0xFF667eea),
+                                  color: cs.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -274,10 +280,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             _showPasswordResetDialog();
                           },
-                          child: const Text(
+                          child: Text(
                             '비밀번호를 잊으셨나요?',
                             style: TextStyle(
-                              color: Color(0xFF666666),
+                              color: cs.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -327,9 +333,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (mounted) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('비밀번호 재설정 이메일이 발송되었습니다.'),
-                      backgroundColor: Colors.green,
+                    SnackBar(
+                      content: const Text('비밀번호 재설정 이메일이 발송되었습니다.'),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                     ),
                   );
                 }
@@ -338,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('오류: ${AuthService.getErrorMessage(e)}'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                   );
                 }

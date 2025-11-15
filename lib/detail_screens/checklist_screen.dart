@@ -73,7 +73,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('체크리스트가 초기화되었습니다.'),
-            backgroundColor: Colors.green[600],
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -85,7 +85,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $msg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -257,7 +257,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $errorMsg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 3),
           ),
         );
@@ -302,7 +302,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $errorMsg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 3),
           ),
         );
@@ -346,7 +346,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $errorMsg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 3),
           ),
         );
@@ -671,7 +671,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red[600],
+                  backgroundColor: Theme.of(context).colorScheme.error,
                 ),
                 child: const Text('삭제'),
               ),
@@ -820,19 +820,19 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
+                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red[200]!),
+                  border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error, color: Colors.red[600], size: 20),
+                    Icon(Icons.error, color: Theme.of(context).colorScheme.error, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _errorMessage!,
                         style: TextStyle(
-                          color: Colors.red[700],
+                          color: Theme.of(context).colorScheme.error,
                           fontSize: 14,
                         ),
                       ),
@@ -844,7 +844,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                         });
                         _loadChecklistFromServer(); // 재시도
                       },
-                      icon: Icon(Icons.refresh, color: Colors.red[600], size: 20),
+                      icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error, size: 20),
                       tooltip: '다시 시도',
                     ),
                   ],
@@ -1190,7 +1190,7 @@ class _WeekSectionTile extends StatelessWidget {
                 boxShadow: [
                   if (!Theme.of(context).brightness.isDark)
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),

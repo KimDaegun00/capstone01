@@ -268,12 +268,14 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: Color(0xFFEFEFEF),
+      backgroundColor: cs.background,
       appBar: AppBar(
         title: Text('정책 추천 검색'),
-        backgroundColor: Color(0xFFF5F5F5),
-        foregroundColor: Colors.black,
+        backgroundColor: cs.surface,
+        foregroundColor: cs.onSurface,
         elevation: 2,
       ),
       body: Stack(
@@ -291,23 +293,23 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: cs.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: cs.primary.withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.family_restroom, color: Colors.blue[800]!),
+                        Icon(Icons.family_restroom, color: cs.primary),
                         SizedBox(width: 8),
                         Text(
                           '저출산 완화 정책 추천 시스템',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800]!,
+                            color: cs.primary,
                           ),
                         ),
                       ],
@@ -318,7 +320,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     SizedBox(height: 8),
@@ -326,7 +328,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       '예시:\n• "아이 키우는데 비용이 많이 들어요"\n• "임신 중에 받을 수 있는 혜택이 궁금해요"\n• "육아 휴직을 받고 싶어요"',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: cs.onSurfaceVariant,
                         height: 1.4,
                       ),
                     ),
@@ -340,23 +342,23 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: cs.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: cs.primary.withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.person, color: Colors.blue[600]),
+                        Icon(Icons.person, color: cs.primary),
                         SizedBox(width: 8),
                         Text(
                           '프로필 정보 반영',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
+                            color: cs.primary,
                           ),
                         ),
                       ],
@@ -366,7 +368,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       '내 프로필 정보(주소지, 성별, 임신여부, 임신주차)를 정책 추천에 반영하시겠습니까?',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     SizedBox(height: 12),
@@ -383,7 +385,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               }
                             });
                           },
-                          activeColor: Colors.blue[600],
+                          activeColor: cs.primary,
                         ),
                         Text('프로필 정보 반영'),
                         SizedBox(width: 20),
@@ -399,7 +401,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               }
                             });
                           },
-                          activeColor: Colors.blue[600],
+                          activeColor: cs.primary,
                         ),
                         Text('반영하지 않음'),
                       ],
@@ -413,7 +415,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                              valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                             ),
                           ),
                           SizedBox(width: 8),
@@ -421,7 +423,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             '프로필 정보를 불러오는 중...',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue[600],
+                              color: cs.primary,
                             ),
                           ),
                         ],
@@ -438,14 +440,14 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
+                            Icon(Icons.check_circle, size: 16, color: cs.primary),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '프로필 정보가 입력란에 자동으로 추가되었습니다.',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.green[700],
+                                  color: cs.primary,
                                 ),
                               ),
                             ),
@@ -468,9 +470,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: Icon(Icons.edit, color: Colors.blue[600]!),
+                  prefixIcon: Icon(Icons.edit, color: cs.primary),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: cs.surfaceVariant,
                 ),
                 maxLines: 3,
                 validator: (value) {
@@ -510,9 +512,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                  color: cs.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.primary.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,7 +545,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.category, color: Colors.blue[600]),
+                          prefixIcon: Icon(Icons.category, color: cs.primary),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -565,8 +567,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             return FilterChip(
                               label: Text(h),
                               selected: selected,
-                              selectedColor: Colors.blue[200],
-                              checkmarkColor: Colors.white,
+                              selectedColor: cs.primary.withOpacity(0.3),
+                              checkmarkColor: cs.onPrimary,
                               onSelected: (v) {
                                 setState(() {
                                   if (v && !_tempSelectedKeywords.contains(h)) {
@@ -593,7 +595,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+                          prefixIcon: Icon(Icons.search, color: cs.primary),
                           filled: true,
                           fillColor: Colors.white,
                         ),
@@ -625,8 +627,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[600],
-                              foregroundColor: Colors.white,
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
                             ),
                             child: Text('선택 완료'),
                           ),
@@ -649,7 +651,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                     if (_selectedCategory != null)
                       Chip(
                         label: Text(_selectedCategory!),
-                        backgroundColor: Colors.blue[100],
+                        backgroundColor: cs.primary.withOpacity(0.2),
                       ),
                     ..._selectedKeywords.map((k) => Chip(
                       label: Text(k),
@@ -702,9 +704,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: Icon(Icons.list, color: Colors.black),
+                  prefixIcon: Icon(Icons.list, color: cs.onSurface),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: cs.surfaceVariant,
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -750,19 +752,19 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
+                    color: cs.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green[200]!),
+                    border: Border.all(color: cs.primary.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[600]),
+                      Icon(Icons.check_circle, color: cs.primary),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _successMessage,
                           style: TextStyle(
-                            color: Colors.green[700],
+                            color: cs.primary,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -777,13 +779,13 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: cs.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
+                    border: Border.all(color: cs.error.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error, color: Colors.red[600]),
+                      Icon(Icons.error, color: cs.error),
                       SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -792,7 +794,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             Text(
                               '오류가 발생했습니다',
                               style: TextStyle(
-                                color: Colors.red[700],
+                                color: cs.error,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -801,7 +803,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             Text(
                               _errorMessage,
                               style: TextStyle(
-                                color: Colors.red[600],
+                                color: cs.error,
                                 fontSize: 13,
                               ),
                             ),
@@ -831,9 +833,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 child: Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                  color: cs.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.primary.withOpacity(0.3)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -855,7 +857,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                         '잠시만 기다려주세요.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[600],
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -935,7 +937,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('즐겨찾기에 추가되었습니다!'),
-            backgroundColor: Colors.green[600],
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: Duration(seconds: 2),
           ),
         );
@@ -947,7 +949,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $errorMsg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 3),
           ),
         );
@@ -958,7 +960,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('네트워크 오류: $e'),
-          backgroundColor: Colors.red[600],
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: Duration(seconds: 3),
         ),
       );
@@ -1004,7 +1006,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('즐겨찾기에서 제거되었습니다!'),
-            backgroundColor: Colors.orange[600],
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             duration: Duration(seconds: 2),
           ),
         );
@@ -1016,7 +1018,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류: $errorMsg'),
-            backgroundColor: Colors.red[600],
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 3),
           ),
         );
@@ -1027,7 +1029,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('네트워크 오류: $e'),
-          backgroundColor: Colors.red[600],
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: Duration(seconds: 3),
         ),
       );
@@ -1132,7 +1134,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('URL을 여는 중 오류가 발생했습니다.'),
-          backgroundColor: Colors.red[600],
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: Duration(seconds: 2),
         ),
       );
@@ -1141,11 +1143,12 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text('저출산 완화 정책 결과'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         elevation: 2,
       ),
       body: Padding(
@@ -1158,23 +1161,23 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
               width: double.infinity,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
+                  color: cs.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: cs.primary.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.family_restroom, color: Colors.blue[600]),
+                      Icon(Icons.family_restroom, color: cs.primary),
                       SizedBox(width: 8),
                       Text(
                         '저출산 완화 정책 검색 결과',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
+                          color: cs.primary,
                         ),
                       ),
                     ],
@@ -1184,7 +1187,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                     '입력: "${widget.userInput}"',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1192,13 +1195,13 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.filter_alt, size: 16, color: Colors.blue[700]),
+                        Icon(Icons.filter_alt, size: 16, color: cs.primary),
                         SizedBox(width: 6),
                         Text(
                           '적용된 필터: ${widget.selectedCategory}',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.blue[700],
+                            color: cs.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1230,7 +1233,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                     Icon(
                       Icons.family_restroom_outlined,
                       size: 64,
-                      color: Colors.grey[400],
+                      color: cs.onSurfaceVariant.withOpacity(0.5),
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -1238,7 +1241,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     SizedBox(height: 8),
@@ -1246,7 +1249,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                       '다른 키워드로 다시 시도해보세요.',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[500],
+                        color: cs.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -1270,11 +1273,11 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                     ),
                     child: ExpansionTile(
                       leading: CircleAvatar(
-                        backgroundColor: _getSimilarityColor(similarity),
+                        backgroundColor: _getSimilarityColor(context, similarity),
                         child: Text(
                           '${index + 1}',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: cs.onPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1295,13 +1298,13 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                               Icon(
                                 Icons.trending_up,
                                 size: 16,
-                                color: _getSimilarityColor(similarity),
+                                color: _getSimilarityColor(context, similarity),
                               ),
                               SizedBox(width: 4),
                               Text(
                                 '유사도: ${similarity.toStringAsFixed(1)}%',
                                 style: TextStyle(
-                                  color: _getSimilarityColor(similarity),
+                                  color: _getSimilarityColor(context, similarity),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1318,13 +1321,13 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    isBookmarked ? Colors.green[600]! : Colors.grey[600]!,
+                                    isBookmarked ? cs.primary : cs.onSurfaceVariant,
                                   ),
                                 ),
                               )
                             : Icon(
                                 isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                color: isBookmarked ? Colors.green[600] : Colors.grey[600],
+                                color: isBookmarked ? cs.primary : cs.onSurfaceVariant,
                                 size: 24,
                               ),
                         onPressed: (isLoading || _initialBookmarkLoading)
@@ -1386,6 +1389,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
 
   Widget _buildInfoRow(String label, dynamic value) {
     final isUrl = label == '상세조회URL';
+    final cs = Theme.of(context).colorScheme;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1395,14 +1399,14 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
             Icon(
               _getIconForLabel(label),
               size: 16,
-              color: Colors.grey[600],
+              color: cs.onSurfaceVariant,
             ),
             SizedBox(width: 8),
             Text(
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: cs.onSurfaceVariant,
                 fontSize: 14,
               ),
             ),
@@ -1413,10 +1417,10 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
           width: double.infinity,
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isUrl ? Colors.blue[50] : Colors.grey[50],
+            color: isUrl ? cs.primary.withOpacity(0.1) : cs.surfaceVariant,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isUrl ? Colors.blue[200]! : Colors.grey[200]!,
+              color: isUrl ? cs.primary.withOpacity(0.3) : cs.onSurfaceVariant.withOpacity(0.2),
             ),
           ),
           child: isUrl && value != null && value.toString().isNotEmpty
@@ -1429,7 +1433,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                           value.toString(),
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.blue[700],
+                            color: cs.primary,
                             height: 1.4,
                             decoration: TextDecoration.underline,
                           ),
@@ -1439,7 +1443,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                       Icon(
                         Icons.open_in_new,
                         size: 16,
-                        color: Colors.blue[600],
+                        color: cs.primary,
                       ),
                     ],
                   ),
@@ -1448,7 +1452,7 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
                   value?.toString() ?? '정보 없음',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).colorScheme.onSurface,
                     height: 1.4,
                   ),
                 ),
@@ -1480,10 +1484,11 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
     }
   }
 
-  Color _getSimilarityColor(double similarity) {
-    if (similarity >= 80) return Colors.green;
-    if (similarity >= 60) return Colors.orange;
-    if (similarity >= 40) return Colors.amber;
-    return Colors.red;
+  Color _getSimilarityColor(BuildContext context, double similarity) {
+    final cs = Theme.of(context).colorScheme;
+    if (similarity >= 80) return cs.primary;
+    if (similarity >= 60) return cs.secondary;
+    if (similarity >= 40) return cs.secondary.withOpacity(0.7);
+    return cs.error;
   }
 }

@@ -3,25 +3,6 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:capstone/widgets/local_html_viewer.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '건강정보 앱',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const HealthInfoList(),
-    );
-  }
-}
-
 class HealthInfoList extends StatefulWidget {
   const HealthInfoList({super.key});
 
@@ -74,7 +55,10 @@ class _HealthInfoListState extends State<HealthInfoList> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('목록 로드 실패: $e')),
+          SnackBar(
+            content: Text('목록 로드 실패: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     }
@@ -106,20 +90,26 @@ class _HealthInfoListState extends State<HealthInfoList> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Scaffold(
+      backgroundColor: cs.background,
       appBar: AppBar(
         title: !_isSearching
             ? const Text('건강정보 목록')
             : TextField(
           autofocus: true,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: '검색어를 입력하세요',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.black38),
+            hintStyle: TextStyle(color: cs.onSurfaceVariant),
           ),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
+          style: TextStyle(color: cs.onSurface, fontSize: 16),
           onChanged: _performSearch,
         ),
+        backgroundColor: cs.surface,
+        foregroundColor: cs.onSurface,
+        elevation: 0,
         actions: [
           !_isSearching
               ? IconButton(
@@ -145,31 +135,31 @@ class _HealthInfoListState extends State<HealthInfoList> {
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               leading: CircleAvatar(
-                backgroundColor: Colors.blue.shade100,
+                backgroundColor: cs.primary.withOpacity(0.1),
                 child: Icon(
                   Icons.health_and_safety,
-                  color: Colors.blue.shade700,
+                  color: cs.primary,
                   size: 24,
                 ),
               ),
               title: Text(
                 item['name'] ?? '',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: cs.onSurface,
                 ),
               ),
               subtitle: Text(
                 '건강정보 문서',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: cs.onSurfaceVariant,
                 ),
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
+                color: cs.onSurfaceVariant,
                 size: 16,
               ),
               onTap: () {

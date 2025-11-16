@@ -72,11 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFf5f7fa), Color(0xFFc3cfe2)],
+            colors: [
+              cs.surface,
+              cs.surfaceVariant,
+            ],
           ),
         ),
         child: SafeArea(
@@ -97,12 +100,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           '👤 유저 정보',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -114,20 +117,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         else if (_userProfile != null)
                            Column(
                              children: [
-                               _buildInfoRow('📧 이메일', user?.email ?? 'N/A'),
-                               _buildInfoRow('👤 별명', _userProfile?['별명'] ?? '미설정'),
-                               _buildInfoRow('🎂 생년월일', _formatDateFromString(_userProfile?['생년월일'])),
-                               _buildInfoRow('🏠 주소지', _userProfile?['주소지'] ?? '미설정'),
-                               _buildInfoRow('⚧ 성별', _userProfile?['성별'] ?? '미설정'),
-                               _buildInfoRow('🤰 임신여부', _userProfile?['임신여부'] == true ? '예' : '아니오'),
-                               _buildInfoRow('📅 임신시작일', _formatDateFromString(_userProfile?['임신시작일'])),
-                               _buildInfoRow('📅 임신주차', _userProfile?['임신주차'] != null ? '${_userProfile?['임신주차']}주차' : '미설정'),
+                               _buildInfoRow('📧 이메일', user?.email ?? 'N/A', context),
+                               _buildInfoRow('👤 별명', _userProfile?['별명'] ?? '미설정', context),
+                               _buildInfoRow('🎂 생년월일', _formatDateFromString(_userProfile?['생년월일']), context),
+                               _buildInfoRow('🏠 주소지', _userProfile?['주소지'] ?? '미설정', context),
+                               _buildInfoRow('⚧ 성별', _userProfile?['성별'] ?? '미설정', context),
+                               _buildInfoRow('🤰 임신여부', _userProfile?['임신여부'] == true ? '예' : '아니오', context),
+                               _buildInfoRow('📅 임신시작일', _formatDateFromString(_userProfile?['임신시작일']), context),
+                               _buildInfoRow('📅 임신주차', _userProfile?['임신주차'] != null ? '${_userProfile?['임신주차']}주차' : '미설정', context),
                              ],
                            )
                         else
-                          const Text(
+                          Text(
                             '프로필 정보를 불러올 수 없습니다.',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: cs.error),
                           ),
                       ],
                     ),
@@ -155,8 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: const Icon(Icons.edit),
                             label: const Text('프로필 수정'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -176,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     'Supabase Auth Test App v1.0.0',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: cs.onSurfaceVariant,
                       fontSize: 14,
                     ),
                   ),
@@ -190,7 +193,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -200,17 +204,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF666666),
+                color: cs.onSurfaceVariant,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF333333),
+              style: TextStyle(
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -254,6 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final dialogCs = Theme.of(context).colorScheme;
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -299,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ? DateFormat('yyyy-MM-dd').format(selectedBirthday!)
                                 : '날짜를 선택하세요',
                             style: TextStyle(
-                              color: selectedBirthday != null ? Colors.black : Colors.grey[700],
+                              color: selectedBirthday != null ? dialogCs.onSurface : dialogCs.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -425,8 +430,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 : '임신 여부가 "예"일 때 선택 가능합니다',
                             style: TextStyle(
                               color: isPregnant
-                                  ? (selectedPregnancyStartDate != null ? Colors.black : Colors.grey[700])
-                                  : Colors.grey[500],
+                                  ? (selectedPregnancyStartDate != null ? dialogCs.onSurface : dialogCs.onSurfaceVariant)
+                                  : dialogCs.onSurfaceVariant.withOpacity(0.6),
                             ),
                           ),
                         ),
@@ -445,9 +450,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if(formKey.currentState!.validate()){
                       if (isPregnant && selectedPregnancyStartDate == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('임신 시작일을 선택해주세요.'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: dialogCs.error,
                           ),
                         );
                         return;
@@ -473,9 +478,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (mounted) {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text('프로필이 업데이트되었습니다!'),
-                                backgroundColor: Colors.green,
+                                backgroundColor: dialogCs.primary,
                               ),
                             );
                             _loadUserProfile(); // 프로필 새로고침
@@ -487,7 +492,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('프로필 업데이트 오류: $e'),
-                              backgroundColor: Colors.red,
+                              backgroundColor: dialogCs.error,
                             ),
                           );
                         }

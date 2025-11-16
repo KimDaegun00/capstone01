@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'nav_screens/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:capstone/config/env_config.dart';
@@ -7,7 +8,6 @@ import 'detail_screens/login_screen.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'detail_screens/password_reset_page.dart';
-import 'package:capstone/services/theme_service.dart';
 
 
 Future<void> main() async {
@@ -48,56 +48,23 @@ class _MyAppState extends State<MyApp> {
   /// 라이트 테마 정의
   final ThemeData _lightTheme = ThemeData(
     brightness: Brightness.light,
-    useMaterial3: true,
-    scaffoldBackgroundColor: Colors.white,
     colorScheme: const ColorScheme.light(
       primary: Colors.teal,
       secondary: Colors.tealAccent,
       surface: Colors.white,
-      onSurface: Colors.black87,
-      onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      error: Color(0xFFB00020),
-      onError: Colors.white,
-      background: Colors.white,
-      onBackground: Colors.black87,
-      surfaceVariant: Color(0xFFF5F5F5),
-      onSurfaceVariant: Colors.black54,
-    ),
-    cardColor: Colors.white,
-    dividerColor: Colors.black12,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.black87),
-      bodyMedium: TextStyle(color: Colors.black87),
-      bodySmall: TextStyle(color: Colors.black54),
+      onSurface: Colors.black,
     ),
   );
 
   /// 다크 테마 정의
   final ThemeData _darkTheme = ThemeData(
     brightness: Brightness.dark,
-    useMaterial3: true,
     scaffoldBackgroundColor: const Color(0xFF121212),
     colorScheme: const ColorScheme.dark(
       primary: Colors.teal,
       secondary: Colors.tealAccent,
       surface: Color(0xFF1E1E1E),
       onSurface: Colors.white,
-      onPrimary: Colors.white,
-      onSecondary: Colors.black,
-      error: Color(0xFFCF6679),
-      onError: Colors.black,
-      background: Color(0xFF121212),
-      onBackground: Colors.white,
-      surfaceVariant: Color(0xFF2C2C2C),
-      onSurfaceVariant: Colors.white70,
-    ),
-    cardColor: const Color(0xFF1E1E1E),
-    dividerColor: Colors.white12,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
-      bodySmall: TextStyle(color: Colors.white70),
     ),
   );
 
@@ -109,8 +76,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadTheme() async {
-    final mode = await ThemeService.loadThemeMode();
-    themeNotifier.value = mode;
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool('isDarkMode') ?? false;
+    themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
   }
 
   /// MaterialApp 구성

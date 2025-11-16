@@ -43,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('로그아웃 오류: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -140,8 +140,8 @@ class MainGridMenu extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
     final spacing = 14.0;
-    final primaryBg = isDark ? cs.primary : cs.primary.withOpacity(0.1);
-    final primaryFg = isDark ? cs.onPrimary : cs.primary;
+    final primaryBg = isDark ? cs.primary : const Color(0xFFECE8FF);
+    final primaryFg = isDark ? Colors.white : const Color(0xFF6B5CFF);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),

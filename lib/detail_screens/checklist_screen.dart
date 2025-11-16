@@ -90,12 +90,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         );
       }
     } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('네트워크 오류: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('네트워크 오류: $e'),
+          backgroundColor: Colors.red[600],
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });

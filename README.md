@@ -5,5 +5,9 @@
 ## Getting Started
 
 사용 도구
-Andorid Studio
 Flutter(dart)
+ - Andorid Studio
+ - vs code
+
+Supabase
+ - Edge Function

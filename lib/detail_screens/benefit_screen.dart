@@ -502,8 +502,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       }
                     });
                   },
-                  icon: Icon(_helperOpen ? Icons.expand_less : Icons.support_agent, color: Colors.black54),
-                  label: Text('정책 추천 상세', style: TextStyle(color: Colors.black54)),
+                  icon: Icon(_helperOpen ? Icons.expand_less : Icons.support_agent, color: cs.primary),
+                  label: Text('정책 추천 상세', style: TextStyle(color: cs.primary)),
                 ),
               ),
 
@@ -545,9 +545,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.category, color: cs.primary),
+                          prefixIcon: Icon(Icons.category, color: cs.onSurface),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: cs.surface,
                         ),
                       ),
 
@@ -595,9 +595,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.search, color: cs.primary),
+                          prefixIcon: Icon(Icons.search, color: cs.onSurface),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: cs.surface,
                         ),
                       ),
 
@@ -1485,10 +1485,8 @@ class _PolicyResultPageState extends State<PolicyResultPage> {
   }
 
   Color _getSimilarityColor(BuildContext context, double similarity) {
-    final cs = Theme.of(context).colorScheme;
-    if (similarity >= 80) return cs.primary;
-    if (similarity >= 60) return cs.secondary;
-    if (similarity >= 40) return cs.secondary.withOpacity(0.7);
-    return cs.error;
+    if (similarity >= 70) return Colors.green[600]!;
+    if (similarity >= 60) return Colors.orange[600]!;
+    return Colors.red[600]!;
   }
 }

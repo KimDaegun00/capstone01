@@ -268,12 +268,16 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Color(0xFFEFEFEF),
+      backgroundColor: isDark ? cs.surface : Color(0xFFEFEFEF),
       appBar: AppBar(
         title: Text('정책 추천 검색'),
-        backgroundColor: Color(0xFFF5F5F5),
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? cs.surface : Color(0xFFF5F5F5),
+        foregroundColor: isDark ? cs.onSurface : Colors.black,
         elevation: 2,
       ),
       body: Stack(
@@ -291,23 +295,23 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.family_restroom, color: Colors.blue[800]!),
+                        Icon(Icons.family_restroom, color: isDark ? cs.primary : Colors.blue[800]!),
                         SizedBox(width: 8),
                         Text(
                           '저출산 완화 정책 추천 시스템',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800]!,
+                            color: isDark ? cs.primary : Colors.blue[800]!,
                           ),
                         ),
                       ],
@@ -318,7 +322,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
+                        color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[700],
                       ),
                     ),
                     SizedBox(height: 8),
@@ -326,7 +330,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       '예시:\n• "아이 키우는데 비용이 많이 들어요"\n• "임신 중에 받을 수 있는 혜택이 궁금해요"\n• "육아 휴직을 받고 싶어요"',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: isDark ? cs.onSurface.withOpacity(0.6) : Colors.grey[600],
                         height: 1.4,
                       ),
                     ),
@@ -340,23 +344,23 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.person, color: Colors.blue[600]),
+                        Icon(Icons.person, color: isDark ? cs.primary : Colors.blue[600]),
                         SizedBox(width: 8),
                         Text(
                           '프로필 정보 반영',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
+                            color: isDark ? cs.primary : Colors.blue[800],
                           ),
                         ),
                       ],
@@ -366,7 +370,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       '내 프로필 정보(주소지, 성별, 임신여부, 임신주차)를 정책 추천에 반영하시겠습니까?',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[700],
                       ),
                     ),
                     SizedBox(height: 12),
@@ -383,9 +387,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               }
                             });
                           },
-                          activeColor: Colors.blue[600],
+                          activeColor: isDark ? cs.primary : Colors.blue[600],
                         ),
-                        Text('프로필 정보 반영'),
+                        Text('프로필 정보 반영', style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
                         SizedBox(width: 20),
                         Radio<bool>(
                           value: false,
@@ -399,9 +403,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               }
                             });
                           },
-                          activeColor: Colors.blue[600],
+                          activeColor: isDark ? cs.primary : Colors.blue[600],
                         ),
-                        Text('반영하지 않음'),
+                        Text('반영하지 않음', style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
                       ],
                     ),
                     if (_profileLoading) ...[
@@ -413,7 +417,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                              valueColor: AlwaysStoppedAnimation<Color>(isDark ? cs.primary : Colors.blue[600]!),
                             ),
                           ),
                           SizedBox(width: 8),
@@ -421,7 +425,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             '프로필 정보를 불러오는 중...',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue[600],
+                              color: isDark ? cs.primary : Colors.blue[600],
                             ),
                           ),
                         ],
@@ -432,20 +436,20 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       Container(
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.green[50],
+                          color: isDark ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.green[200]!),
+                          border: Border.all(color: isDark ? Colors.green[700]!.withOpacity(0.5) : Colors.green[200]!),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle, size: 16, color: Colors.green[600]),
+                            Icon(Icons.check_circle, size: 16, color: isDark ? Colors.green[400] : Colors.green[600]),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '프로필 정보가 입력란에 자동으로 추가되었습니다.',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.green[700],
+                                  color: isDark ? Colors.green[300] : Colors.green[700],
                                 ),
                               ),
                             ),
@@ -462,15 +466,18 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               // 사용자 입력 필드
               TextFormField(
                 controller: _userInputController,
+                style: TextStyle(color: isDark ? cs.onSurface : Colors.black),
                 decoration: InputDecoration(
                   labelText: '임신/출산/육아 관련 고민을 입력하세요',
+                  labelStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.black54),
                   hintText: '예: 아이 키우는데 비용이 많이 들어요',
+                  hintStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.5) : Colors.black38),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: Icon(Icons.edit, color: Colors.blue[600]!),
+                  prefixIcon: Icon(Icons.edit, color: isDark ? cs.primary : Colors.blue[600]!),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: isDark ? cs.surfaceContainerHighest : Colors.grey[50],
                 ),
                 maxLines: 3,
                 validator: (value) {
@@ -500,8 +507,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       }
                     });
                   },
-                  icon: Icon(_helperOpen ? Icons.expand_less : Icons.support_agent, color: Colors.black54),
-                  label: Text('정책 추천 상세', style: TextStyle(color: Colors.black54)),
+                  icon: Icon(_helperOpen ? Icons.expand_less : Icons.support_agent, color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.black54),
+                  label: Text('정책 추천 상세', style: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.black54)),
                 ),
               ),
 
@@ -510,25 +517,26 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                    border: Border.all(color: isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('서비스 분야 선택', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('서비스 분야 선택', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? cs.onSurface : Colors.black)),
                       SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _tempSelectedCategory,
+                        style: TextStyle(color: isDark ? cs.onSurface : Colors.black),
                         items: [
-                          const DropdownMenuItem<String>(
+                          DropdownMenuItem<String>(
                             value: null,
-                            child: Text('전체(필터 없음)'),
+                            child: Text('전체(필터 없음)', style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
                           ),
                           ..._categories.map((c) => DropdownMenuItem<String>(
                                 value: c,
-                                child: Text(c),
+                                child: Text(c, style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
                               )),
                         ],
                         onChanged: (value) {
@@ -543,19 +551,19 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.category, color: Colors.blue[600]),
+                          prefixIcon: Icon(Icons.category, color: isDark ? cs.primary : Colors.blue[600]!),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: isDark ? cs.surfaceContainerHighest : Colors.white,
                         ),
                       ),
 
                       SizedBox(height: 12),
-                      Text('추천 키워드', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('추천 키워드', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? cs.onSurface : Colors.black)),
                       SizedBox(height: 8),
                       Builder(builder: (ctx) {
                         final hints = _categoryKeywordHints[_tempSelectedCategory] ?? const <String>[];
                         if (hints.isEmpty) {
-                          return Text('선택된 서비스 분야의 키워드가 없습니다.');
+                          return Text('선택된 서비스 분야의 키워드가 없습니다.', style: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[600]));
                         }
                         return Wrap(
                           spacing: 8,
@@ -563,10 +571,11 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                           children: hints.map((h) {
                             final selected = _tempSelectedKeywords.contains(h);
                             return FilterChip(
-                              label: Text(h),
+                              label: Text(h, style: TextStyle(color: selected ? (isDark ? cs.onPrimary : Colors.white) : (isDark ? cs.onSurface : Colors.black))),
                               selected: selected,
-                              selectedColor: Colors.blue[200],
-                              checkmarkColor: Colors.white,
+                              selectedColor: isDark ? cs.primary : Colors.blue[200],
+                              checkmarkColor: isDark ? cs.onPrimary : Colors.white,
+                              backgroundColor: isDark ? cs.surfaceContainerHighest : null,
                               onSelected: (v) {
                                 setState(() {
                                   if (v && !_tempSelectedKeywords.contains(h)) {
@@ -583,19 +592,22 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
 
                       SizedBox(height: 12),
                       // 사용자 정의 키워드 입력 필드 추가
-                      Text('추가 키워드 입력 (선택 사항)', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('추가 키워드 입력 (선택 사항)', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? cs.onSurface : Colors.black)),
                       SizedBox(height: 8),
                       TextFormField(
                         controller: _customKeywordsController,
+                        style: TextStyle(color: isDark ? cs.onSurface : Colors.black),
                         decoration: InputDecoration(
                           labelText: '키워드를 쉼표(,)로 구분하여 입력하세요',
+                          labelStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.black54),
                           hintText: '예: 주택, 자금, 육아휴직',
+                          hintStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.5) : Colors.black38),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+                          prefixIcon: Icon(Icons.search, color: isDark ? cs.primary : Colors.blue[600]!),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: isDark ? cs.surfaceContainerHighest : Colors.white,
                         ),
                       ),
 
@@ -625,8 +637,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                               });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[600],
-                              foregroundColor: Colors.white,
+                              backgroundColor: isDark ? cs.primary : Colors.blue[600]!,
+                              foregroundColor: isDark ? cs.onPrimary : Colors.white,
                             ),
                             child: Text('선택 완료'),
                           ),
@@ -648,11 +660,12 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                   children: [
                     if (_selectedCategory != null)
                       Chip(
-                        label: Text(_selectedCategory!),
-                        backgroundColor: Colors.blue[100],
+                        label: Text(_selectedCategory!, style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
+                        backgroundColor: isDark ? cs.primaryContainer : Colors.blue[100],
                       ),
                     ..._selectedKeywords.map((k) => Chip(
-                      label: Text(k),
+                      label: Text(k, style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
+                      backgroundColor: isDark ? cs.surfaceContainerHighest : null,
                       onDeleted: () {
                         setState(() {
                           _selectedKeywords.remove(k);
@@ -665,7 +678,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                         .map((k) => k.trim())
                         .where((k) => k.isNotEmpty)
                         .map((k) => Chip(
-                      label: Text(k),
+                      label: Text(k, style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
+                      backgroundColor: isDark ? cs.surfaceContainerHighest : null,
                       onDeleted: () {
                         setState(() {
                           // 사용자 정의 키워드 삭제 로직
@@ -676,8 +690,9 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                       },
                     )),
                     ActionChip(
-                      label: Text('초기화'),
-                      avatar: Icon(Icons.clear, size: 16),
+                      label: Text('초기화', style: TextStyle(color: isDark ? cs.onSurface : Colors.black)),
+                      avatar: Icon(Icons.clear, size: 16, color: isDark ? cs.onSurface : Colors.black),
+                      backgroundColor: isDark ? cs.surfaceContainerHighest : null,
                       onPressed: () {
                         setState(() {
                           _selectedKeywords.clear();
@@ -696,15 +711,18 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
               // 추천 개수 입력 필드
               TextFormField(
                 controller: _topKController,
+                style: TextStyle(color: isDark ? cs.onSurface : Colors.black),
                 decoration: InputDecoration(
                   labelText: '추천 정책 개수',
+                  labelStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.black54),
                   hintText: '10',
+                  hintStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.5) : Colors.black38),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: Icon(Icons.list, color: Colors.black),
+                  prefixIcon: Icon(Icons.list, color: isDark ? cs.onSurface : Colors.black),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: isDark ? cs.surfaceContainerHighest : Colors.grey[50],
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -734,8 +752,8 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 ),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue[600]!,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark ? cs.primary : Colors.blue[600]!,
+                  foregroundColor: isDark ? cs.onPrimary : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -750,19 +768,19 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
+                    color: isDark ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green[200]!),
+                    border: Border.all(color: isDark ? Colors.green[700]!.withOpacity(0.5) : Colors.green[200]!),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[600]),
+                      Icon(Icons.check_circle, color: isDark ? Colors.green[400] : Colors.green[600]),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _successMessage,
                           style: TextStyle(
-                            color: Colors.green[700],
+                            color: isDark ? Colors.green[300] : Colors.green[700],
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -777,13 +795,13 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: isDark ? Colors.red[900]!.withOpacity(0.3) : Colors.red[50],
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
+                    border: Border.all(color: isDark ? Colors.red[700]!.withOpacity(0.5) : Colors.red[200]!),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error, color: Colors.red[600]),
+                      Icon(Icons.error, color: isDark ? Colors.red[400] : Colors.red[600]),
                       SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -792,7 +810,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             Text(
                               '오류가 발생했습니다',
                               style: TextStyle(
-                                color: Colors.red[700],
+                                color: isDark ? Colors.red[300] : Colors.red[700],
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -801,7 +819,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                             Text(
                               _errorMessage,
                               style: TextStyle(
-                                color: Colors.red[600],
+                                color: isDark ? Colors.red[400] : Colors.red[600],
                                 fontSize: 13,
                               ),
                             ),
@@ -831,15 +849,15 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                 child: Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
+                    color: isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                    border: Border.all(color: isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                        valueColor: AlwaysStoppedAnimation<Color>(isDark ? cs.primary : Colors.blue[600]!),
                       ),
                       SizedBox(height: 12),
                       Text(
@@ -847,7 +865,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue[700],
+                          color: isDark ? cs.primary : Colors.blue[700],
                         ),
                       ),
                       SizedBox(height: 6),
@@ -855,7 +873,7 @@ class _PolicyRecommendationPageState extends State<PolicyRecommendationPage> {
                         '잠시만 기다려주세요.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[600],
+                          color: isDark ? cs.onSurface.withOpacity(0.6) : Colors.grey[600],
                         ),
                       ),
                     ],

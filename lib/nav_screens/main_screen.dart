@@ -108,25 +108,25 @@ class MainGridMenu extends StatelessWidget {
 
     return [
       MenuItem(
-        title: '정책 추천',
+        title: tr('정책 추천', 'Benefits\nRecommendation'),
         icon: Icons.card_giftcard,
         gradient: policy,
         screen: PolicyRecommendationPage(),
       ),
       MenuItem(
-        title: '주변 시설',
+        title: tr('주변 시설', 'Nearby\nFacilities'),
         icon: Icons.place,
         gradient: nearby,
         screen: NearbyScreen(),
       ),
       MenuItem(
-        title: '체크리스트',
+        title: tr('체크리스트', 'Checklist'),
         icon: Icons.check_circle_outline,
         gradient: checklist,
         screen: ChecklistScreen(),
       ),
       MenuItem(
-        title: '건강/육아 정보',
+        title: tr('건강/육아 정보', 'Parenting Info'),
         icon: Icons.info,
         gradient: health,
         screen: HealthInfoList(),
@@ -266,7 +266,7 @@ class MainGridMenu extends StatelessWidget {
               Text(
                 item.title,
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 16,

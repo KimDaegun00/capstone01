@@ -106,20 +106,26 @@ class _HealthInfoListState extends State<HealthInfoList> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
       appBar: AppBar(
         title: !_isSearching
             ? const Text('건강정보 목록')
             : TextField(
           autofocus: true,
-          decoration: const InputDecoration(
+          style: TextStyle(color: isDark ? cs.onSurface : Colors.black, fontSize: 16),
+          decoration: InputDecoration(
             hintText: '검색어를 입력하세요',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.black38),
+            hintStyle: TextStyle(color: isDark ? cs.onSurface.withOpacity(0.5) : Colors.black38),
           ),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
           onChanged: _performSearch,
         ),
+        backgroundColor: isDark ? cs.surface : null,
+        foregroundColor: isDark ? cs.onSurface : null,
         actions: [
           !_isSearching
               ? IconButton(
@@ -133,7 +139,11 @@ class _HealthInfoListState extends State<HealthInfoList> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(isDark ? cs.primary : Colors.blue),
+              ),
+            )
           : ListView.builder(
         itemCount: filteredList.length,
         itemBuilder: (context, index) {
@@ -141,35 +151,36 @@ class _HealthInfoListState extends State<HealthInfoList> {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             elevation: 2,
+            color: isDark ? cs.surfaceContainerHighest : null,
             child: ListTile(
               contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               leading: CircleAvatar(
-                backgroundColor: Colors.blue.shade100,
+                backgroundColor: isDark ? Colors.teal : Colors.blue.shade100,
                 child: Icon(
                   Icons.health_and_safety,
-                  color: Colors.blue.shade700,
+                  color: isDark ? Colors.tealAccent : Colors.blue.shade700,
                   size: 24,
                 ),
               ),
               title: Text(
                 item['name'] ?? '',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: isDark ? cs.onSurface : Colors.black87,
                 ),
               ),
               subtitle: Text(
                 '건강정보 문서',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: isDark ? cs.onSurface.withOpacity(0.6) : Colors.grey.shade600,
                 ),
               ),
               trailing: Icon(
                 Icons.arrow_forward_ios,
-                color: Colors.grey.shade400,
+                color: isDark ? cs.onSurface.withOpacity(0.4) : Colors.grey.shade400,
                 size: 16,
               ),
               onTap: () {

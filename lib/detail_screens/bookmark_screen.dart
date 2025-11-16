@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:capstone/services/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:capstone/main.dart'; // tr 함수 사용
 
 class BookmarkScreen extends StatefulWidget {
   const BookmarkScreen({super.key});
@@ -36,7 +37,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
       if (user == null) {
         if (mounted) {
           setState(() {
-            _errorMessage = '로그인이 필요합니다.';
+            _errorMessage = tr('로그인이 필요합니다.', 'Login required.');
             _loading = false;
           });
         }
@@ -71,7 +72,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
           });
         }
       } else {
-        final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
+        final errorMsg = data?['error'] ?? data?['message'] ?? tr('알 수 없는 오류가 발생했습니다.', 'An unknown error occurred.');
         
         if (mounted) {
           setState(() {
@@ -86,7 +87,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
       print('❌ 즐겨찾기 목록 로딩 오류: $e');
       if (mounted) {
         setState(() {
-          _errorMessage = '네트워크 오류: $e';
+          _errorMessage = tr('네트워크 오류: ', 'Network error: ') + e.toString();
           _loading = false;
         });
       }
@@ -127,7 +128,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('즐겨찾기에서 제거되었습니다!'),
+            content: Text(tr('즐겨찾기에서 제거되었습니다!', 'Removed from bookmarks!')),
             backgroundColor: Colors.orange[600],
             duration: Duration(seconds: 2),
           ),
@@ -135,11 +136,11 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
 
         print('✅ 즐겨찾기 제거 완료');
       } else {
-        final errorMsg = data?['error'] ?? data?['message'] ?? '알 수 없는 오류가 발생했습니다.';
+        final errorMsg = data?['error'] ?? data?['message'] ?? tr('알 수 없는 오류가 발생했습니다.', 'An unknown error occurred.');
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('오류: $errorMsg'),
+            content: Text(tr('오류: ', 'Error: ') + errorMsg),
             backgroundColor: Colors.red[600],
             duration: Duration(seconds: 3),
           ),
@@ -150,7 +151,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('네트워크 오류: $e'),
+          content: Text(tr('네트워크 오류: ', 'Network error: ') + e.toString()),
           backgroundColor: Colors.red[600],
           duration: Duration(seconds: 3),
         ),
@@ -173,7 +174,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
       print('❌ URL 열기 오류: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('URL을 여는 중 오류가 발생했습니다.'),
+          content: Text(tr('URL을 여는 중 오류가 발생했습니다.', 'Error occurred while opening URL.')),
           backgroundColor: Colors.red[600],
           duration: Duration(seconds: 2),
         ),
@@ -183,17 +184,21 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text('정책 즐겨찾기'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
+        title: Text(tr('정책 즐겨찾기', 'Policy Bookmarks')),
+        backgroundColor: isDark ? cs.surface : Colors.blue[600],
+        foregroundColor: isDark ? cs.onSurface : Colors.white,
         elevation: 2,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadBookmarkedPolicies,
-            tooltip: '새로고침',
+            tooltip: tr('새로고침', 'Refresh'),
           ),
         ],
       ),
@@ -203,14 +208,14 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                    valueColor: AlwaysStoppedAnimation<Color>(isDark ? cs.primary : Colors.blue[600]!),
                   ),
                   SizedBox(height: 16),
                   Text(
-                    '즐겨찾기된 정책을 불러오는 중...',
+                    tr('즐겨찾기된 정책을 불러오는 중...', 'Loading bookmarked policies...'),
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[600],
+                      color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -224,15 +229,15 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.red[400],
+                        color: isDark ? Colors.red[400] : Colors.red[400],
                       ),
                       SizedBox(height: 16),
                       Text(
-                        '오류가 발생했습니다',
+                        tr('오류가 발생했습니다', 'An error occurred'),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.red[600],
+                          color: isDark ? Colors.red[300] : Colors.red[600],
                         ),
                       ),
                       SizedBox(height: 8),
@@ -240,7 +245,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                         _errorMessage,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[600],
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -248,10 +253,10 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                       ElevatedButton.icon(
                         onPressed: _loadBookmarkedPolicies,
                         icon: Icon(Icons.refresh),
-                        label: Text('다시 시도'),
+                        label: Text(tr('다시 시도', 'Retry')),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
-                          foregroundColor: Colors.white,
+                          backgroundColor: isDark ? cs.primary : Colors.blue[600],
+                          foregroundColor: isDark ? cs.onPrimary : Colors.white,
                         ),
                       ),
                     ],
@@ -265,23 +270,23 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                           Icon(
                             Icons.bookmark_border,
                             size: 64,
-                            color: Colors.grey[400],
+                            color: isDark ? cs.onSurface.withOpacity(0.4) : Colors.grey[400],
                           ),
                           SizedBox(height: 16),
                           Text(
-                            '즐겨찾기된 정책이 없습니다',
+                            tr('즐겨찾기된 정책이 없습니다', 'No bookmarked policies'),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
+                              color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[600],
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
-                            '정책 추천에서 관심 있는 정책을\n즐겨찾기에 추가해보세요.',
+                            tr('정책 추천에서 관심 있는 정책을\n즐겨찾기에 추가해보세요.', 'Add policies of interest from\nPolicy Recommendations to bookmarks.'),
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[500],
+                              color: isDark ? cs.onSurface.withOpacity(0.5) : Colors.grey[500],
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -298,33 +303,33 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                             width: double.infinity,
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue[50],
+                              color: isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50],
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.blue[200]!),
+                              border: Border.all(color: isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.bookmark, color: Colors.blue[600]),
+                                    Icon(Icons.bookmark, color: isDark ? cs.primary : Colors.blue[600]),
                                     SizedBox(width: 8),
                                     Text(
-                                      '즐겨찾기된 정책',
+                                      tr('즐겨찾기된 정책', 'Bookmarked Policies'),
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue[800],
+                                        color: isDark ? cs.primary : Colors.blue[800],
                                       ),
                                     ),
                                   ],
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  '총 ${_bookmarkedPolicies.length}개의 정책이 즐겨찾기에 추가되어 있습니다.',
+                                  tr('총 ', 'Total ') + '${_bookmarkedPolicies.length}' + tr('개의 정책이 즐겨찾기에 추가되어 있습니다.', ' policies are bookmarked.'),
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.blue[700],
+                                    color: isDark ? cs.primary : Colors.blue[700],
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -341,7 +346,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                               itemBuilder: (context, index) {
                                 final policy = _bookmarkedPolicies[index];
                                 final serviceId = policy['서비스ID']?.toString() ?? '';
-                                final serviceName = policy['서비스명'] ?? '서비스명 없음';
+                                final serviceName = policy['서비스명'] ?? tr('서비스명 없음', 'No service name');
                                 final isLoading = _bookmarkLoadingStates[serviceId] ?? false;
 
                                 return Card(
@@ -352,10 +357,10 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                                   ),
                                   child: ExpansionTile(
                                     leading: CircleAvatar(
-                                      backgroundColor: Colors.blue[600],
+                                      backgroundColor: isDark ? cs.primary : Colors.blue[600],
                                       child: Icon(
                                         Icons.bookmark,
-                                        color: Colors.white,
+                                        color: isDark ? cs.onPrimary : Colors.white,
                                         size: 20,
                                       ),
                                     ),
@@ -364,12 +369,13 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
+                                        color: isDark ? cs.onSurface : Colors.black,
                                       ),
                                     ),
                                     subtitle: Text(
-                                      '즐겨찾기된 정책',
+                                      tr('즐겨찾기된 정책', 'Bookmarked Policy'),
                                       style: TextStyle(
-                                        color: Colors.blue[600],
+                                        color: isDark ? cs.primary : Colors.blue[600],
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -381,18 +387,18 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                                               height: 20,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.red[600]!),
+                                                valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.red[400]! : Colors.red[600]!),
                                               ),
                                             )
                                           : Icon(
                                               Icons.bookmark_remove,
-                                              color: Colors.red[600],
+                                              color: isDark ? Colors.red[400] : Colors.red[600],
                                               size: 24,
                                             ),
                                       onPressed: isLoading
                                           ? null
                                           : () => _removeBookmark(serviceId, serviceName),
-                                      tooltip: '즐겨찾기에서 제거',
+                                      tooltip: tr('즐겨찾기에서 제거', 'Remove from Bookmarks'),
                                     ),
                                     children: [
                                       Padding(
@@ -447,6 +453,9 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
   }
 
   Widget _buildInfoRow(String label, dynamic value) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final isUrl = label == '상세조회URL';
     
     return Column(
@@ -457,14 +466,14 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
             Icon(
               _getIconForLabel(label),
               size: 16,
-              color: Colors.grey[600],
+              color: isDark ? cs.onSurface.withOpacity(0.6) : Colors.grey[600],
             ),
             SizedBox(width: 8),
             Text(
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: isDark ? cs.onSurface.withOpacity(0.7) : Colors.grey[700],
                 fontSize: 14,
               ),
             ),
@@ -475,10 +484,14 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
           width: double.infinity,
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isUrl ? Colors.blue[50] : Colors.grey[50],
+            color: isUrl 
+                ? (isDark ? cs.primaryContainer.withOpacity(0.3) : Colors.blue[50])
+                : (isDark ? cs.surfaceContainerHighest : Colors.grey[50]),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isUrl ? Colors.blue[200]! : Colors.grey[200]!,
+              color: isUrl 
+                  ? (isDark ? cs.primary.withOpacity(0.3) : Colors.blue[200]!)
+                  : (isDark ? cs.outline.withOpacity(0.3) : Colors.grey[200]!),
             ),
           ),
           child: isUrl && value != null && value.toString().isNotEmpty
@@ -491,7 +504,7 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                           value.toString(),
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.blue[700],
+                            color: isDark ? cs.primary : Colors.blue[700],
                             height: 1.4,
                             decoration: TextDecoration.underline,
                           ),
@@ -501,16 +514,16 @@ class _BookmarkScreenState extends State<BookmarkScreen> {
                       Icon(
                         Icons.open_in_new,
                         size: 16,
-                        color: Colors.blue[600],
+                        color: isDark ? cs.primary : Colors.blue[600],
                       ),
                     ],
                   ),
                 )
               : Text(
-                  value?.toString() ?? '정보 없음',
+                  value?.toString() ?? tr('정보 없음', 'No information'),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[800],
+                    color: isDark ? cs.onSurface : Colors.grey[800],
                     height: 1.4,
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:capstone/services/auth_service.dart';
 import 'package:intl/intl.dart';
+import 'package:capstone/main.dart'; // ⬅️ tr(), langNotifier 사용
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (user != null) {
         debugPrint("유저가 있음");
         final profile = await AuthService.getUserProfileWithWeeks(user.id);
-        if(profile == null) {
+        if (profile == null) {
           debugPrint("profile is null");
         }
         if (mounted) {
@@ -39,8 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _isLoading = false;
           });
         }
-      }
-      else{
+      } else {
         debugPrint("유저가 없음");
         if (mounted) {
           setState(() {
@@ -60,23 +60,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final user = AuthService.currentUser;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('프로필 정보'),
-        // 라이트/다크 테마에 맞게 자동 적용
+        title: Text(tr('프로필 정보', 'Profile Info')),
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
         elevation: 0,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFf5f7fa), Color(0xFFc3cfe2)],
+            colors: isDark
+                ? const [
+              Color(0xFF0f172a),
+              Color(0xFF020617),
+            ]
+                : const [
+              Color(0xFFf5f7fa),
+              Color(0xFFc3cfe2),
+            ],
           ),
         ),
         child: SafeArea(
@@ -86,111 +95,153 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                // 유저 정보 카드
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '👤 유저 정보',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
+                  // 유저 정보 카드
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tr('👤 유저 정보', '👤 User Info'),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: cs.onSurface,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        if (_isLoading)
-                          const Center(
-                            child: CircularProgressIndicator(),
-                          )
-                        else if (_userProfile != null)
-                           Column(
-                             children: [
-                               _buildInfoRow('📧 이메일', user?.email ?? 'N/A'),
-                               _buildInfoRow('👤 별명', _userProfile?['별명'] ?? '미설정'),
-                               _buildInfoRow('🎂 생년월일', _formatDateFromString(_userProfile?['생년월일'])),
-                               _buildInfoRow('🏠 주소지', _userProfile?['주소지'] ?? '미설정'),
-                               _buildInfoRow('⚧ 성별', _userProfile?['성별'] ?? '미설정'),
-                               _buildInfoRow('🤰 임신여부', _userProfile?['임신여부'] == true ? '예' : '아니오'),
-                               _buildInfoRow('📅 임신시작일', _formatDateFromString(_userProfile?['임신시작일'])),
-                               _buildInfoRow('📅 임신주차', _userProfile?['임신주차'] != null ? '${_userProfile?['임신주차']}주차' : '미설정'),
-                             ],
-                           )
-                        else
-                          const Text(
-                            '프로필 정보를 불러올 수 없습니다.',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                      ],
+                          const SizedBox(height: 16),
+
+                          if (_isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else if (_userProfile != null)
+                            Column(
+                              children: [
+                                _buildInfoRow(
+                                  context,
+                                  tr('📧 이메일', '📧 Email'),
+                                  user?.email ?? 'N/A',
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('👤 별명', '👤 Nickname'),
+                                  _userProfile?['별명'] ??
+                                      tr('미설정', 'Not set'),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('🎂 생년월일', '🎂 Date of Birth'),
+                                  _formatDateFromString(
+                                      _userProfile?['생년월일']),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('🏠 주소지', '🏠 Address'),
+                                  _userProfile?['주소지'] ??
+                                      tr('미설정', 'Not set'),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('⚧ 성별', '⚧ Gender'),
+                                  _userProfile?['성별'] ??
+                                      tr('미설정', 'Not set'),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('🤰 임신여부', '🤰 Status'),
+                                  _userProfile?['임신여부'] == true
+                                      ? tr('예', 'Yes')
+                                      : tr('아니오', 'No'),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('📅 임신시작일', '📅 Start Date'),
+                                  _formatDateFromString(
+                                      _userProfile?['임신시작일']),
+                                ),
+                                _buildInfoRow(
+                                  context,
+                                  tr('📅 임신주차', '📅 Week'),
+                                  _userProfile?['임신주차'] != null
+                                      ? '${_userProfile?['임신주차']}${tr('주차', ' week')}'
+                                      : tr('미설정', 'Not set'),
+                                ),
+                              ],
+                            )
+                          else
+                            Text(
+                              tr('프로필 정보를 불러올 수 없습니다.',
+                                  'Unable to load profile.'),
+                              style: TextStyle(color: cs.error),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // 기능 테스트 카드
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              _showProfileUpdateDialog();
-                            },
-                            icon: const Icon(Icons.edit),
-                            label: const Text('프로필 수정'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                  // 기능 테스트 카드
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showProfileUpdateDialog(),
+                              icon: const Icon(Icons.edit),
+                              label: Text(tr('프로필 수정', 'Edit Profile')),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF667eea),
+                                foregroundColor: Colors.white,
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // 하단 정보
-                Center(
-                  child: Text(
-                    'Supabase Auth Test App v1.0.0',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+
+                  const SizedBox(height: 24),
+
+                  // 하단 정보
+                  Center(
+                    child: Text(
+                      'Supabase Auth Test App v1.0.0',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(
+      BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -200,17 +251,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF666666),
+                color: cs.onSurface.withOpacity(0.7),
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF333333),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -220,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _formatDateFromString(dynamic dateValue) {
-    if (dateValue == null) return '미설정';
+    if (dateValue == null) return tr('미설정', 'Not set');
     if (dateValue is String) {
       try {
         final date = DateTime.parse(dateValue);
@@ -232,32 +283,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (dateValue is DateTime) {
       return '${dateValue.year}-${dateValue.month.toString().padLeft(2, '0')}-${dateValue.day.toString().padLeft(2, '0')}';
     }
-    return '미설정';
+    return tr('미설정', 'Not set');
   }
 
   void _showProfileUpdateDialog() {
-    final nicknameController = TextEditingController(text: _userProfile?['별명'] ?? '');
-    final addressController = TextEditingController(text: _userProfile?['주소지'] ?? '');
+    final nicknameController =
+    TextEditingController(text: _userProfile?['별명'] ?? '');
+    final addressController =
+    TextEditingController(text: _userProfile?['주소지'] ?? '');
 
-    final formKey = GlobalKey<FormState>(); // Form 위젯을 위한 GlobalKey 추가
-    
+    final formKey = GlobalKey<FormState>();
+
     // 상태 관리를 위한 변수들
+    // ⚠️ DB에는 항상 '여자' / '남자' 만 저장되도록 기본값을 한국어로 유지
     String selectedGender = _userProfile?['성별'] ?? '여자';
     bool isPregnant = _userProfile?['임신여부'] ?? false;
     DateTime? selectedPregnancyStartDate = _userProfile?['임신시작일'] != null
-        ? (_userProfile!['임신시작일'] is String ? DateTime.tryParse(_userProfile!['임신시작일']) : _userProfile!['임신시작일'])
+        ? (_userProfile!['임신시작일'] is String
+        ? DateTime.tryParse(_userProfile!['임신시작일'])
+        : _userProfile!['임신시작일'])
         : null;
     DateTime? selectedBirthday = _userProfile?['생년월일'] != null
-        ? (_userProfile!['생년월일'] is String ? DateTime.tryParse(_userProfile!['생년월일']) : _userProfile!['생년월일'])
+        ? (_userProfile!['생년월일'] is String
+        ? DateTime.tryParse(_userProfile!['생년월일'])
+        : _userProfile!['생년월일'])
         : null;
 
     showDialog(
       context: context,
       builder: (context) {
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('프로필 수정'),
+              title: Text(tr('프로필 수정', 'Edit Profile')),
               content: SingleChildScrollView(
                 child: Form(
                   key: formKey,
@@ -267,9 +328,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       TextFormField(
                         controller: nicknameController,
-                        decoration: const InputDecoration(
-                          labelText: '별명',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: tr('별명', 'Nickname'),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -278,7 +339,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onTap: () async {
                           final pickedDate = await showDatePicker(
                             context: context,
-                            initialDate: selectedBirthday ?? DateTime.now(),
+                            initialDate:
+                            selectedBirthday ?? DateTime.now(),
                             firstDate: DateTime(1900),
                             lastDate: DateTime.now(),
                           );
@@ -289,17 +351,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           }
                         },
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: '생년월일',
-                            border: OutlineInputBorder(),
-                            suffixIcon: Icon(Icons.calendar_today),
+                          decoration: InputDecoration(
+                            labelText: tr('생년월일', 'Date of Birth'),
+                            border: const OutlineInputBorder(),
+                            suffixIcon:
+                            const Icon(Icons.calendar_today),
                           ),
                           child: Text(
                             selectedBirthday != null
-                                ? DateFormat('yyyy-MM-dd').format(selectedBirthday!)
-                                : '날짜를 선택하세요',
+                                ? DateFormat('yyyy-MM-dd')
+                                .format(selectedBirthday!)
+                                : tr('날짜를 선택하세요', 'Select a date'),
                             style: TextStyle(
-                              color: selectedBirthday != null ? Colors.black : Colors.grey[700],
+                              color: selectedBirthday != null
+                                  ? cs.onSurface
+                                  : cs.onSurface.withOpacity(0.7),
                             ),
                           ),
                         ),
@@ -307,23 +373,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: addressController,
-                        decoration: const InputDecoration(
-                          labelText: '주소지',
-                          hintText: '경기도 오산시 양산동',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: tr('주소지', 'Address'),
+                          hintText: tr('경기도 오산시 양산동',
+                              'e.g., Suwon, Gyeonggi'),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 16),
                       // 성별 라디오 버튼
-                      const Text(
-                        '성별',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        tr('성별', 'Gender'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold),
                       ),
                       Row(
                         children: [
                           Expanded(
                             child: RadioListTile<String>(
-                              title: const Text('여자'),
+                              title: Text(tr('여자', 'Female')),
+                              // DB에 저장되는 값은 항상 '여자'
                               value: '여자',
                               groupValue: selectedGender,
                               onChanged: (value) {
@@ -335,7 +404,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           Expanded(
                             child: RadioListTile<String>(
-                              title: const Text('남자'),
+                              title: Text(tr('남자', 'Male')),
+                              // DB에 저장되는 값은 항상 '남자'
                               value: '남자',
                               groupValue: selectedGender,
                               onChanged: (value) {
@@ -351,38 +421,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       // 임신여부 라디오 버튼 (성별이 '여자'일 때만 활성화)
-                      const Text(
-                        '임신 여부',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        tr('임신 여부', 'Pregnancy'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold),
                       ),
                       Row(
                         children: [
                           Expanded(
                             child: RadioListTile<bool>(
-                              title: const Text('예'),
+                              title: Text(tr('예', 'Yes')),
                               value: true,
                               groupValue: isPregnant,
                               onChanged: selectedGender == '여자'
                                   ? (value) {
-                                    setState(() {
-                                      isPregnant = value!;
-                                    });
-                                  }
+                                setState(() {
+                                  isPregnant = value!;
+                                });
+                              }
                                   : null,
                             ),
                           ),
                           Expanded(
                             child: RadioListTile<bool>(
-                              title: const Text('아니오'),
+                              title: Text(tr('아니오', 'No')),
                               value: false,
                               groupValue: isPregnant,
                               onChanged: selectedGender == '여자'
                                   ? (value) {
-                                    setState(() {
-                                      isPregnant = value!;
-                                      selectedPregnancyStartDate = null; // 임신 안했으면 시작일 초기화
-                                    });
-                                  }
+                                setState(() {
+                                  isPregnant = value!;
+                                  selectedPregnancyStartDate =
+                                  null; // 임신 안했으면 시작일 초기화
+                                });
+                              }
                                   : null,
                             ),
                           ),
@@ -390,43 +462,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
                       // 임신 시작일 캘린더 선택 (임신여부가 '예'일 때만 활성화)
-                      const Text(
-                        '임신 시작일',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        tr('임신 시작일', 'Pregnancy Start Date'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       InkWell(
                         onTap: isPregnant
                             ? () async {
-                                final pickedDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: selectedPregnancyStartDate ?? DateTime.now(),
-                                  firstDate: DateTime(1950),
-                                  lastDate: DateTime.now(),
-                                );
-                                if (pickedDate != null) {
-                                  setState(() {
-                                    selectedPregnancyStartDate = pickedDate;
-                                  });
-                                }
-                              }
+                          final pickedDate =
+                          await showDatePicker(
+                            context: context,
+                            initialDate:
+                            selectedPregnancyStartDate ??
+                                DateTime.now(),
+                            firstDate: DateTime(1950),
+                            lastDate: DateTime.now(),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              selectedPregnancyStartDate =
+                                  pickedDate;
+                            });
+                          }
+                        }
                             : null,
                         child: InputDecorator(
                           decoration: InputDecoration(
                             border: const OutlineInputBorder(),
-                            suffixIcon: const Icon(Icons.calendar_today),
+                            suffixIcon:
+                            const Icon(Icons.calendar_today),
                             enabled: isPregnant,
                           ),
                           child: Text(
                             isPregnant
                                 ? (selectedPregnancyStartDate != null
-                                    ? DateFormat('yyyy-MM-dd').format(selectedPregnancyStartDate!)
-                                    : '날짜를 선택하세요')
-                                : '임신 여부가 "예"일 때 선택 가능합니다',
+                                ? DateFormat('yyyy-MM-dd')
+                                .format(
+                                selectedPregnancyStartDate!)
+                                : tr('날짜를 선택하세요',
+                                'Select a date'))
+                                : tr(
+                                '임신 여부가 "예"일 때 선택 가능합니다',
+                                'Selectable only if pregnancy is "Yes"'),
                             style: TextStyle(
                               color: isPregnant
-                                  ? (selectedPregnancyStartDate != null ? Colors.black : Colors.grey[700])
-                                  : Colors.grey[500],
+                                  ? (selectedPregnancyStartDate !=
+                                  null
+                                  ? cs.onSurface
+                                  : cs.onSurface
+                                  .withOpacity(0.7))
+                                  : cs.onSurface.withOpacity(0.5),
                             ),
                           ),
                         ),
@@ -438,15 +525,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('취소'),
+                  child: Text(tr('취소', 'Cancel')),
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if(formKey.currentState!.validate()){
-                      if (isPregnant && selectedPregnancyStartDate == null) {
+                    if (formKey.currentState!.validate()) {
+                      if (isPregnant &&
+                          selectedPregnancyStartDate == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('임신 시작일을 선택해주세요.'),
+                          SnackBar(
+                            content: Text(
+                              tr('임신 시작일을 선택해주세요.',
+                                  'Please select pregnancy start date.'),
+                            ),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -457,24 +548,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final user = AuthService.currentUser;
                         if (user != null) {
                           final updates = {
-                            '별명': nicknameController.text.trim(),
-                            '생년월일': selectedBirthday?.toIso8601String(),
-                            '주소지': addressController.text.trim(),
+                            '별명':
+                            nicknameController.text.trim(),
+                            '생년월일': selectedBirthday
+                                ?.toIso8601String(),
+                            '주소지':
+                            addressController.text.trim(),
+                            // 여기서 selectedGender는 항상 '여자' 또는 '남자'
                             '성별': selectedGender,
                             '임신여부': isPregnant,
-                            '임신시작일': selectedPregnancyStartDate?.toIso8601String(),
+                            '임신시작일':
+                            selectedPregnancyStartDate
+                                ?.toIso8601String(),
                           };
-                          
+
                           await AuthService.updateUserProfile(
                             userId: user.id,
                             updates: updates,
                           );
-                          
+
                           if (mounted) {
                             Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('프로필이 업데이트되었습니다!'),
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  tr('프로필이 업데이트되었습니다!',
+                                      'Profile updated!'),
+                                ),
                                 backgroundColor: Colors.green,
                               ),
                             );
@@ -484,9 +585,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       } catch (e) {
                         if (mounted) {
                           debugPrint("프로필 업데이트 오류: $e");
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
                             SnackBar(
-                              content: Text('프로필 업데이트 오류: $e'),
+                              content: Text(
+                                  tr('프로필 업데이트 오류: $e',
+                                      'Profile update error: $e')),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -494,7 +598,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
                     }
                   },
-                  child: const Text('저장'),
+                  child: Text(tr('저장', 'Save')),
                 ),
               ],
             );

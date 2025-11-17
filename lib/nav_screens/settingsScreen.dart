@@ -47,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
             valueListenable: langNotifier,
             builder: (context, isEnglish, _) {
               return SwitchListTile(
-                title: Text(isEnglish ? '한국어로 보기' : '영어로 보기'),
+                title: Text(isEnglish ? '한국어로 보기' : 'View in English'),
                 secondary: const Icon(Icons.language),
                 value: isEnglish,
                 onChanged: (bool newValue) {

@@ -73,13 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            colors: isDark
+                ? [cs.surface, cs.surfaceVariant]
+                : const [Color(0xFF667eea), Color(0xFF764ba2)],
           ),
         ),
         child: SafeArea(
@@ -91,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                color: isDark ? cs.surface : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Form(
@@ -99,26 +106,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // 앱 로고/제목
-                        const Icon(
+                        Icon(
                           Icons.lock_outline,
                           size: 64,
-                          color: Color(0xFF667eea),
+                          color: cs.primary,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           '맘편한AI 로그인',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           '로그인하여 계속하세요',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF666666),
+                            color: cs.onSurface.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -135,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -171,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -191,14 +198,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.red[50],
+                              color: isDark ? cs.errorContainer : Colors.red[50],
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red[200]!),
+                              border: Border.all(
+                                color: isDark ? cs.error.withOpacity(0.5) : Colors.red[200]!,
+                              ),
                             ),
                             child: Text(
                               _errorMessage!,
                               style: TextStyle(
-                                color: Colors.red[700],
+                                color: isDark ? cs.onErrorContainer : Colors.red[700],
                                 fontSize: 14,
                               ),
                             ),
@@ -213,8 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _signIn,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -244,9 +253,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               '계정이 없으신가요? ',
-                              style: TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(color: cs.onSurface.withOpacity(0.7)),
                             ),
                             TextButton(
                               onPressed: () {
@@ -256,10 +265,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 );
                               },
+                              style: TextButton.styleFrom(
+                                foregroundColor: cs.primary,
+                              ),
                               child: const Text(
                                 '회원가입',
                                 style: TextStyle(
-                                  color: Color(0xFF667eea),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -274,10 +285,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             _showPasswordResetDialog();
                           },
-                          child: const Text(
+                          child: Text(
                             '비밀번호를 잊으셨나요?',
                             style: TextStyle(
-                              color: Color(0xFF666666),
+                              color: cs.onSurface.withOpacity(0.7),
                             ),
                           ),
                         ),

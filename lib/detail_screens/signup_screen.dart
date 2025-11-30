@@ -89,19 +89,25 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('회원가입'),
-        backgroundColor: const Color(0xFF667eea),
-        foregroundColor: Colors.white,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         elevation: 0,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            colors: isDark
+                ? [cs.surface, cs.surfaceVariant]
+                : const [Color(0xFF667eea), Color(0xFF764ba2)],
           ),
         ),
         child: SafeArea(
@@ -113,6 +119,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                color: isDark ? cs.surface : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Form(
@@ -121,20 +128,20 @@ class _SignupScreenState extends State<SignupScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // 제목
-                        const Text(
+                        Text(
                           '새 계정 만들기',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           '필수 정보를 입력해주세요',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF666666),
+                            color: cs.onSurface.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -150,7 +157,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -176,7 +183,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -212,7 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -248,7 +255,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
+                            fillColor: isDark ? cs.surfaceVariant : Colors.grey[50],
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -268,14 +275,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.red[50],
+                              color: isDark ? cs.errorContainer : Colors.red[50],
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red[200]!),
+                              border: Border.all(
+                                color: isDark ? cs.error.withOpacity(0.5) : Colors.red[200]!,
+                              ),
                             ),
                             child: Text(
                               _errorMessage!,
                               style: TextStyle(
-                                color: Colors.red[700],
+                                color: isDark ? cs.onErrorContainer : Colors.red[700],
                                 fontSize: 14,
                               ),
                             ),
@@ -290,8 +299,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _signUp,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF667eea),
-                              foregroundColor: Colors.white,
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -321,18 +330,20 @@ class _SignupScreenState extends State<SignupScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               '이미 계정이 있으신가요? ',
-                              style: TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(color: cs.onSurface.withOpacity(0.7)),
                             ),
                             TextButton(
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
+                              style: TextButton.styleFrom(
+                                foregroundColor: cs.primary,
+                              ),
                               child: const Text(
                                 '로그인',
                                 style: TextStyle(
-                                  color: Color(0xFF667eea),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
